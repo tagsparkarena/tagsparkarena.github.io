@@ -1,0 +1,56 @@
+name: Publish game website
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
+      - run: pnpm build
+        env:
+          VITE_SITE_URL: https://tusharkumar-tag.github.io
+          VITE_BASE_PATH: /Tag-Spark-Arena/
+      - name: Add AdSense verification without loading ads
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const path = 'dist/index.html';
+          let html = fs.readFileSync(path, 'utf8');
+          if (!html.includes('name="google-adsense-account"')) {
+            html = html.replace('</head>', '<meta name="google-adsense-account" content="ca-pub-4197964753033984"></head>');
+            fs.writeFileSync(path, html);
+          }
+          fs.writeFileSync('dist/ads.txt', 'google.com, pub-4197964753033984, DIRECT, f08c47fec0942fa0\n');
+          NODE
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publish
+        id: deployment
+        uses: actions/deploy-pages@v4
