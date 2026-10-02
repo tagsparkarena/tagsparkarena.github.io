@@ -187,7 +187,8 @@ export function createGame(parent: HTMLElement, session: Session) {
           g.fillRoundedRect(p.x, p.y + 7, p.w, h, 6);
           g.fillStyle(w.map.ground);
           g.fillRoundedRect(p.x, p.y, p.w, h, 6);
-          g.fillStyle(p.ice ? 0xb9e8ff : p.bounce ? 0xffd362 : w.map.accent);
+          // Ordinary platforms share one material; no decorative power-up colors.
+          g.fillStyle(w.map.ground);
           g.fillRoundedRect(p.x, p.y, p.w, 7, 3);
           if (p.bounce) {
             g.lineStyle(2, ink, 0.5);

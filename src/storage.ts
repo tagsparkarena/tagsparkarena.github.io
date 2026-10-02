@@ -5,7 +5,7 @@ export const defaults = (): Settings => ({
   duration: 90,
   rounds: 3,
   maps: MAPS.map((m) => m.id),
-  modifiers: MODIFIERS.map((m) => m.id),
+  modifiers: ["classic"],
   powers: ["speed", "shield", "double"],
   seed: "",
   controls: DEFAULT_CONTROLS.map((c) => ({ ...c })),
@@ -23,10 +23,19 @@ export function loadSettings(): Settings {
     if ([1, 3, 5, 7].includes(v.rounds || 0)) d.rounds = v.rounds!;
     for (const k of ["maps", "modifiers", "powers"] as const) {
       if (Array.isArray(v[k])) {
-        const a = v[k]!.filter((x) => (d[k] as string[]).includes(x));
+        const allowed = k === "modifiers" ? MODIFIERS.map((m) => m.id) : d[k];
+        const a = v[k]!.filter((x) => (allowed as string[]).includes(x));
         if (a.length || k !== "maps") (d[k] as string[]) = a;
       }
     }
+    // Preserve custom selections; expand the previous "all maps" selection.
+    if (
+      v.maps?.length === 5 &&
+      ["courtyard", "rooftop", "clockwork", "cavern", "cloud"].every((id) =>
+        v.maps!.includes(id),
+      )
+    )
+      d.maps = MAPS.map((m) => m.id);
     if (typeof v.seed === "string") d.seed = v.seed.slice(0, 40);
     if (Array.isArray(v.controls) && v.controls.length === 4) {
       const codes = v.controls.flatMap((c) => Object.values(c));

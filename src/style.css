@@ -799,6 +799,24 @@ input[type="checkbox"] {
   margin-top: 5px;
   margin-bottom: 20px;
 }
+@media (min-width: 900px) {
+  body:has(.game-shell) header {
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+  main:has(.game-shell) {
+    max-width: min(1240px, calc((100svh - 275px) * 1000 / 560 + 80px));
+    padding-top: 8px;
+    padding-bottom: 16px;
+  }
+  main:has(.game-shell) .game-heading {
+    margin-bottom: 10px;
+  }
+  main:has(.game-shell) .under-game {
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+}
 .game-heading h2 {
   font-size: 27px;
   margin: 7px 0;
