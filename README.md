@@ -1,6 +1,6 @@
 # TagSpark Arena
 
-A complete static browser game for 2–4 people sharing one keyboard. Five arenas, six optional modifiers, speed bursts, shield bubbles and double jumps. Built with Phaser 3, TypeScript and Vite. No API keys, accounts, database or game server.
+A complete static browser game for 2–4 people sharing one keyboard. Eight arenas, six optional modifiers, speed bursts, shield bubbles and double jumps. Built with Phaser 3, TypeScript and Vite. No API keys, accounts, database or game server.
 
 ## Play and scoring
 
@@ -47,7 +47,7 @@ pnpm exec playwright install chromium
 pnpm test:e2e
 ```
 
-Unit tests cover score rules, exact buzzer timing, tag locks, power-up duration, shield cooldown, double jumps, coyote-friendly movement, simultaneous input, moving platforms, portals, seeded fairness and a 35-combination map/modifier stress simulation. Browser tests cover the complete match journey, all pickups, pause, rematch, 3/4 players, resizing and accessibility.
+Unit tests cover score rules, exact buzzer timing, tag locks, power-up duration, shield cooldown, double jumps, coyote-friendly movement, simultaneous input, moving platforms, portals, seeded fairness and a 56-combination map/modifier stress simulation. Browser tests cover the complete match journey, all pickups, pause, rematch, 3/4 players, resizing and accessibility.
 
 The dev-only `?test` URL exposes repeatable test hooks and a `development_test_action` WebMCP tool. These hooks are removed from production by Vite. `read_game_status` is an optional read-only progressive enhancement for browsers supporting WebMCP. Ordinary browsers do not need it.
 
@@ -59,7 +59,7 @@ See `QA_REPORT.md` for which checks actually ran in the delivery environment; in
 - `src/game.ts`: Phaser rendering, fixed-step integration, particles and visual feedback.
 - `src/engine.ts`: pure simulation, collision, scoring, tag/pickup rules, seeded selection.
 - `src/config.ts`: gameplay tuning, player colors, control defaults and power-up configuration.
-- `src/maps.ts`: all five maps, platform data, ramps, bounce pads, portals and modifiers.
+- `src/maps.ts`: eight flat, multi-level maps, portal locations and optional modifiers.
 - `src/input.ts`: held keys plus queued short taps; blur/pause reset.
 - `src/audio.ts`: original synthesized effects and an adjustable soft music loop.
 - `src/storage.ts`: validated, fallible local settings and lifetime-stat storage.
@@ -71,11 +71,11 @@ See `QA_REPORT.md` for which checks actually ran in the delivery environment; in
 
 ## Balance and tuning
 
-Edit `TUNING` in `src/config.ts`. Base speed 265 units/s; speed power-up ×1.2 for 4 seconds; shield 3 seconds with another 7-second cooldown; double jump 8 seconds. Catch-up starts after 9 seconds without a tag, ramps over 12 seconds, and caps at 12%. Catch-up and Speed Burst multiply, for a bounded maximum ×1.344 before any global round modifier.
+Edit `TUNING` in `src/config.ts`. Base speed 350 units/s; speed power-up ×1.35 for 4 seconds; shield 3 seconds with another 7-second cooldown; double jump 8 seconds. Catch-up starts after 9 seconds without a tag, ramps over 12 seconds, and caps at 12%. Catch-up and Speed Burst multiply, for a bounded maximum ×1.512 before any global round modifier.
 
 Pickups telegraph for 1.1 seconds, expire after 13 active seconds, appear every 7 seconds (3.5 for Power-Up Rain), and cap at three. Shields are runners-only. Buffs reset every round. The single active modifier applies equally to everyone. With no modifiers selected, Classic is used.
 
-Maps have open one-way platforms and ground lanes, so there are no solid-walled dead ends. Courtyard and Cavern include slopes. Rooftop and Cloud have launch pads. Clockwork has moving bridges. Cloud's paired low portals have a cooldown. Arena positions are fixed in a 1000 × 560 coordinate system and scale to fit the browser.
+Maps have broad, flat one-way platforms and ground lanes, with distinct multi-level routes and no ramps or built-in special surfaces. Moving platforms and slippery floors are optional modifiers. Cloud's paired low portals have a cooldown. Arena positions are fixed in a 1000 × 560 coordinate system and scale to fit the browser. New profiles default to Classic; custom modifier choices remain available.
 
 Player pickup counts are recorded separately by kind during a round (`World.players[].pickups`) and aggregated in match results. Use those counts during human playtests to identify dominant power-ups. Seed reproduces map/modifier selection and initial random sequence; it is not a full input replay.
 
@@ -129,7 +129,7 @@ Revenue is not guaranteed. An estimate is page views / 1,000 × page RPM; RPM an
 - Join 2, 3 and 4 players; confirm unjoined players are absent.
 - Hold multiple movement/jump keys on several real keyboards; remap missed combinations.
 - Chase in both directions and try every route and modifier.
-- Check short/long jumps, one extra air jump, drop-through, bounce pads, moving platforms and portal cooldown.
+- Check short/long jumps, one extra air jump, drop-through, optional moving platforms and portal cooldown.
 - Attempt immediate retags, shield chaining, and power-up pickups at expiry.
 - Pause by Esc and by switching tabs; resume with no stuck keys or elapsed match time.
 - Finish all rounds, confirm last-It loss, shared ties, next round and rematch.
@@ -145,4 +145,4 @@ Revenue is not guaranteed. An estimate is page views / 1,000 × page RPM; RPM an
 - Contact is intentionally a placeholder and must be filled before launch. Advertising and consent are documented integration points, not an activated network.
 - TypeScript 6 is used because the current TypeScript ESLint parser supports versions below 6.1; Phaser is pinned to 3.90 as requested, even though Phaser 4 exists.
 
-Nothing has been publicly deployed. No domain, account or live advertising has been created.
+Published game: https://tusharkumar-tag.github.io/Tag-Spark-Arena/. Site homepage: https://tusharkumar-tag.github.io/. Live advertising remains disabled; ownership verification is not ad approval.
