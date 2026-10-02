@@ -71,7 +71,7 @@ See `QA_REPORT.md` for which checks actually ran in the delivery environment; in
 
 ## Balance and tuning
 
-Edit `TUNING` in `src/config.ts`. Base speed 350 units/s; speed power-up ×1.35 for 4 seconds; shield 3 seconds with another 7-second cooldown; double jump 8 seconds. Catch-up starts after 9 seconds without a tag, ramps over 12 seconds, and caps at 12%. Catch-up and Speed Burst multiply, for a bounded maximum ×1.512 before any global round modifier.
+Edit `TUNING` in `src/config.ts`. Base speed 475 units/s; speed power-up ×1.35 (641.25 units/s) for 4 seconds; shield 3 seconds with another 7-second cooldown; double jump 8 seconds. Ground acceleration and braking are 8500 units/s², air acceleration is 6500, and reversals gain a 1.5× acceleration multiplier. A brief jump tap clears a normal platform tier; holding adds modest extra height. Catch-up starts after 9 seconds without a tag, ramps over 12 seconds, and caps at 12%. Catch-up and Speed Burst multiply, for a bounded maximum ×1.512 before any global round modifier.
 
 Pickups telegraph for 1.1 seconds, expire after 13 active seconds, appear every 7 seconds (3.5 for Power-Up Rain), and cap at three. Shields are runners-only. Buffs reset every round. The single active modifier applies equally to everyone. With no modifiers selected, Classic is used.
 
