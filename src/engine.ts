@@ -253,7 +253,9 @@ export class World {
       p.jumpBuffer = -99;
       this.events.push({ type: "jump", x: p.x, y: p.y, player: p.id });
     }
-    if (!input.jump && p.prevJump && p.vy < -200) p.vy *= 0.52;
+    // A tap still clears a platform tier; holding adds a little extra height.
+    if (!input.jump && p.prevJump && p.vy < -200)
+      p.vy *= T.jumpReleaseMultiplier;
     p.prevJump = input.jump;
     if (input.action && p.ground > 0 && !this.platforms[p.ground].slope) {
       p.dropUntil = this.time + 0.2;
@@ -269,7 +271,11 @@ export class World {
         ? T.acceleration * (this.modifier.friction || ice)
         : T.airAcceleration;
     p.vx = axis
-      ? approach(p.vx, axis * this.speed(p), accel * dt)
+      ? approach(
+          p.vx,
+          axis * this.speed(p),
+          accel * (p.vx * axis < 0 ? T.turnMultiplier : 1) * dt,
+        )
       : approach(
           p.vx,
           0,
