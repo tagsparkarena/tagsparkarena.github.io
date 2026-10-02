@@ -4,6 +4,41 @@ import { MAPS, MODIFIERS } from "../src/maps";
 import { TUNING as T, WORLD as W } from "../src/config";
 
 describe("faster chase and flat routes", () => {
+  it("reaches full speed and reverses direction within 100 milliseconds", () => {
+    const world = new World(MAPS[0], MODIFIERS[0], [0, 1], 0, 90, [], "juke");
+    const p = world.players[0];
+    p.x = 500;
+    for (let i = 0; i < 12; i++)
+      world.tick(W.step, { 0: { ...idle, right: true } });
+    expect(p.vx).toBe(475);
+    for (let i = 0; i < 12; i++)
+      world.tick(W.step, { 0: { ...idle, left: true } });
+    expect(p.vx).toBe(-475);
+  });
+  it("a single-frame tap clears 125px while holding retains extra height", () => {
+    const heights = [false, true].map((hold) => {
+      const world = new World(
+        { ...MAPS[0], platforms: [] },
+        MODIFIERS[0],
+        [0, 1],
+        0,
+        90,
+        [],
+        "tap",
+      );
+      const p = world.players[0];
+      const start = p.y;
+      let peak = start;
+      for (let i = 0; i < 100; i++) {
+        world.tick(W.step, { 0: { ...idle, jump: hold || i === 0 } });
+        peak = Math.min(peak, p.y);
+      }
+      return start - peak;
+    });
+    expect(heights[0]).toBeGreaterThan(125);
+    expect(heights[1]).toBeGreaterThan(heights[0]);
+    expect(heights[1] - heights[0]).toBeLessThan(40);
+  });
   it("accelerates promptly, stops predictably, and catches contacts at boosted speed", () => {
     const world = new World(MAPS[0], MODIFIERS[0], [0, 1], 0, 90, [], "pace");
     const [p, runner] = world.players;
@@ -57,13 +92,13 @@ describe("faster chase and flat routes", () => {
         });
       }
       expect(reached.size).toBe(platforms.length);
-      // A real held jump from ground must reach each map's first tier.
+      // Even a one-frame tap must reach each map's first tier.
       const world = new World(map, MODIFIERS[0], [0, 1], 0, 90, [], "jump");
       const target = map.platforms[0],
         p = world.players[0];
       p.x = target.x + target.w / 2;
       for (let i = 0; i < 100; i++)
-        world.tick(W.step, { 0: { ...idle, jump: true } });
+        world.tick(W.step, { 0: { ...idle, jump: i === 0 } });
       expect(p.ground).toBe(1);
     },
   );
