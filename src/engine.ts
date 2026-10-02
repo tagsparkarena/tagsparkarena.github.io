@@ -297,7 +297,10 @@ export class World {
       for (const platform of this.platforms) {
         if (p.x < platform.x - 10 || p.x > platform.x + platform.w + 10)
           continue;
-        if (platform.index > 0 && this.time < p.dropUntil) continue;
+        // Holding drop bypasses every raised platform without resetting fall speed.
+        // The arena floor always remains solid; releasing restores normal landings.
+        if (platform.index > 0 && (input.action || this.time < p.dropUntil))
+          continue;
         const top = surface(platform, p.x);
         const onSlope = previousGround === platform.index && !!platform.slope;
         if (

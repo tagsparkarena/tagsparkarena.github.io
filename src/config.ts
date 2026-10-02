@@ -84,13 +84,13 @@ export const POWER_INFO: Record<
     name: "Speed Burst",
     icon: "ϟ",
     color: 0xffcf5c,
-    description: "35% faster for 4 seconds. Make your escape.",
+    description: "35% faster movement for 4 seconds.",
   },
   shield: {
     name: "Invincibility Shield",
     icon: "◇",
     color: 0x70dbd9,
-    description: "3 seconds of tag protection. Runners only.",
+    description: "3 seconds of tag protection for runners.",
   },
   double: {
     name: "Double Jump",

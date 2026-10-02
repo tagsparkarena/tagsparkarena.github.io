@@ -30,7 +30,7 @@ export const MAPS: ArenaMap[] = [
   {
     id: "courtyard",
     name: "Sunlit Courtyard",
-    tagline: "THE CLASSIC CHASE",
+    tagline: "WIDE TERRACES",
     description:
       "Wide flat terraces, two climbing routes and an open ground-level sprint. No ramps.",
     sky: 0xe0eee3,
@@ -53,7 +53,7 @@ export const MAPS: ArenaMap[] = [
   {
     id: "rooftop",
     name: "Rooftop Garden",
-    tagline: "TAKE THE HIGH ROAD",
+    tagline: "TWIN TOWERS",
     description:
       "Two rooftop towers surround a central drop lane. Climb either side and cross the skyline.",
     sky: 0xd8eaf0,
@@ -77,7 +77,7 @@ export const MAPS: ArenaMap[] = [
   {
     id: "clockwork",
     name: "Clockwork Crossing",
-    tagline: "SWITCH YOUR LANE",
+    tagline: "OFFSET BRIDGES",
     description:
       "Offset bridges interlock around three drop shafts. Switch levels to cut off a chase.",
     sky: 0xf2e9d6,
@@ -100,7 +100,7 @@ export const MAPS: ArenaMap[] = [
   {
     id: "cavern",
     name: "Crystal Cavern",
-    tagline: "FIND THE CUT-THROUGH",
+    tagline: "SPLIT LEVELS",
     description:
       "Long shelves, staggered side exits and a split upper gallery. No slippery surprises.",
     sky: 0xe0dff1,
@@ -123,7 +123,7 @@ export const MAPS: ArenaMap[] = [
   {
     id: "cloud",
     name: "Cloud Playground",
-    tagline: "THE LONG WAY IS A SHORTCUT",
+    tagline: "EDGE PORTALS",
     description:
       "A broad central staircase meets two outer routes. Marked floor portals connect the edges.",
     sky: 0xe0ecf8,
@@ -147,7 +147,7 @@ export const MAPS: ArenaMap[] = [
   {
     id: "switchback",
     name: "Switchback Steps",
-    tagline: "CHANGE DIRECTION. AGAIN.",
+    tagline: "STAGGERED PLATFORMS",
     description:
       "An asymmetric zigzag climbs across the whole arena. Short side decks create return routes.",
     sky: 0xf5e5dc,
@@ -170,7 +170,7 @@ export const MAPS: ArenaMap[] = [
   {
     id: "skybridge",
     name: "Skybridge Station",
-    tagline: "OWN THE CROSSING",
+    tagline: "LONG UPPER BRIDGE",
     description:
       "A long high bridge is reached by twin stairways. Drop into the middle to reverse the chase.",
     sky: 0xdcecf1,
@@ -192,7 +192,7 @@ export const MAPS: ArenaMap[] = [
   {
     id: "pinwheel",
     name: "Pinwheel Plaza",
-    tagline: "ROUND AND ROUND",
+    tagline: "LOOPING ROUTES",
     description:
       "Four staggered terraces wind around a central deck. Cut across or loop around the outside.",
     sky: 0xe9edda,
@@ -231,20 +231,20 @@ export const MODIFIERS: Modifier[] = [
     id: "classic",
     name: "Classic",
     icon: "○",
-    description: "Just you, your friends, and the spark.",
+    description: "Standard movement and platform rules.",
   },
   {
     id: "gravity",
     name: "Low Gravity",
     icon: "☾",
-    description: "Longer airtime. More room for a last-second escape.",
+    description: "Reduced gravity increases jump height and airtime.",
     gravity: 0.6,
   },
   {
     id: "ice",
     name: "Slippery Floors",
     icon: "≈",
-    description: "Less grip, more drift. Brake before the edge.",
+    description: "Reduced ground friction makes turning and stopping slower.",
     friction: 0.18,
   },
   {
@@ -258,14 +258,14 @@ export const MODIFIERS: Modifier[] = [
     id: "moving",
     name: "Moving Platform Mayhem",
     icon: "↔",
-    description: "The platforms join the chase.",
+    description: "Platforms move horizontally.",
     moving: true,
   },
   {
     id: "bounce",
     name: "Super Bounce",
     icon: "↑",
-    description: "Every jump gets a little more spring.",
+    description: "Increased jump height.",
     jump: 1.2,
   },
   {
