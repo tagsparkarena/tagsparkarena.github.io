@@ -4,6 +4,43 @@ import { MAPS, MODIFIERS } from "../src/maps";
 import { TUNING as T, WORLD as W } from "../src/config";
 
 describe("faster chase and flat routes", () => {
+  it("holding drop falls through stacked platforms exactly like an empty arena", () => {
+    const platforms = [200, 290, 380, 470].map((y) => ({ x: 100, y, w: 800 }));
+    const make = (decks: typeof platforms) => {
+      const w = new World(
+        { ...MAPS[0], platforms: decks },
+        MODIFIERS[0],
+        [0, 1],
+        0,
+        90,
+        [],
+        "drop",
+      );
+      Object.assign(w.players[0], {
+        x: 500,
+        y: 100,
+        vy: 100,
+        ground: -1,
+        lastGround: -99,
+      });
+      return w;
+    };
+    const stacked = make(platforms),
+      empty = make([]);
+    for (let i = 0; i < 100; i++) {
+      stacked.tick(W.step, { 0: { ...idle, action: true } });
+      empty.tick(W.step, { 0: { ...idle, action: true } });
+      expect(stacked.players[0].y).toBe(empty.players[0].y);
+      expect(stacked.players[0].vy).toBe(empty.players[0].vy);
+    }
+    expect(stacked.players[0].ground).toBe(0);
+    const released = make(platforms);
+    for (let i = 0; i < 15; i++)
+      released.tick(W.step, { 0: { ...idle, action: true } });
+    for (let i = 0; i < 30; i++) released.tick(W.step, {});
+    expect(released.players[0].ground).toBe(1);
+    expect(released.players[0].y).toBe(200);
+  });
   it("reaches full speed and reverses direction within 100 milliseconds", () => {
     const world = new World(MAPS[0], MODIFIERS[0], [0, 1], 0, 90, [], "juke");
     const p = world.players[0];
