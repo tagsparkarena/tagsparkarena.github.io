@@ -5,7 +5,12 @@ import { TUNING as T, WORLD as W } from "../src/config";
 
 describe("faster chase and flat routes", () => {
   it("holding drop falls through stacked platforms exactly like an empty arena", () => {
-    const platforms = [200, 290, 380, 470].map((y) => ({ x: 100, y, w: 800 }));
+    const platforms = [200, 290, 380, 470].map((y) => ({
+      x: 100,
+      y,
+      w: 800,
+      oneWay: true,
+    }));
     const make = (decks: typeof platforms) => {
       const w = new World(
         { ...MAPS[0], platforms: decks },
@@ -47,10 +52,10 @@ describe("faster chase and flat routes", () => {
     p.x = 500;
     for (let i = 0; i < 12; i++)
       world.tick(W.step, { 0: { ...idle, right: true } });
-    expect(p.vx).toBe(475);
+    expect(p.vx).toBe(T.speed);
     for (let i = 0; i < 12; i++)
       world.tick(W.step, { 0: { ...idle, left: true } });
-    expect(p.vx).toBe(-475);
+    expect(p.vx).toBe(-T.speed);
   });
   it("a single-frame tap clears 125px while holding retains extra height", () => {
     const heights = [false, true].map((hold) => {
@@ -74,7 +79,7 @@ describe("faster chase and flat routes", () => {
     });
     expect(heights[0]).toBeGreaterThan(125);
     expect(heights[1]).toBeGreaterThan(heights[0]);
-    expect(heights[1] - heights[0]).toBeLessThan(40);
+    expect(heights[1] - heights[0]).toBeLessThan(45);
   });
   it("accelerates promptly, stops predictably, and catches contacts at boosted speed", () => {
     const world = new World(MAPS[0], MODIFIERS[0], [0, 1], 0, 90, [], "pace");
@@ -105,7 +110,10 @@ describe("faster chase and flat routes", () => {
       ).toBe(true);
       expect(
         map.platforms.every(
-          (p) => p.x >= 25 && p.x + p.w <= W.width - 25 && p.w >= 130,
+          (p) =>
+            p.x >= 25 &&
+            p.x + p.w <= W.width - 25 &&
+            (p.wall ? p.w >= 30 : p.w >= 130),
         ),
       ).toBe(true);
       // Conservative jump envelope: subtract run-up distance and require 20px

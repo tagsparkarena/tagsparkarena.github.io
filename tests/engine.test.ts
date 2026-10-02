@@ -206,8 +206,8 @@ describe("movement and maps", () => {
       1: { ...idle, left: true, jump: true },
     });
     expect(w.players[0].x).toBeGreaterThan(95);
-    expect(w.players[1].x).toBeLessThan(905);
-    expect(w.players.every((p) => p.y < 530)).toBe(true);
+    expect(w.players[1].x).toBeLessThan(w.map.spawns[1]);
+    expect(w.players.every((p) => p.y < WORLD.floor)).toBe(true);
     const p = w.players[0];
     p.x = 120;
     p.y = w.platforms[1].y;
@@ -238,9 +238,9 @@ describe("movement and maps", () => {
   });
   it("rescues an out-of-bounds player", () => {
     const w = make();
-    w.players[0].y = 900;
+    w.players[0].y = WORLD.height + 150;
     w.tick(WORLD.step, {});
-    expect(w.players[0].y).toBe(530);
+    expect(w.players[0].y).toBe(WORLD.floor);
     expect(w.players[0].safeUntil).toBeGreaterThan(w.time);
   });
   it.each(MAPS.map((m, i) => [m.name, i] as const))(
@@ -268,8 +268,8 @@ describe("movement and maps", () => {
             (p) =>
               Number.isFinite(p.x + p.y) &&
               p.x >= 18 &&
-              p.x <= 982 &&
-              p.y <= 560,
+              p.x <= WORLD.width - 18 &&
+              p.y <= WORLD.height,
           ),
         ).toBe(true);
       }
