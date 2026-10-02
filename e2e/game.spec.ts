@@ -32,9 +32,9 @@ test("complete a two-player match with tags, pickups, pause and rematch", async 
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/?test");
-  await page.getByRole("button", { name: "Let’s play →", exact: true }).click();
+  await page.getByRole("button", { name: "Play →", exact: true }).click();
   await expect(
-    page.getByRole("button", { name: "Start the chase →", exact: true }),
+    page.getByRole("button", { name: "Start match →", exact: true }),
   ).toBeDisabled();
   await page.keyboard.press("KeyW");
   await page.keyboard.press("ArrowUp");
@@ -46,7 +46,7 @@ test("complete a two-player match with tags, pickups, pause and rematch", async 
     .selectOption("1");
   await page.getByRole("button", { name: "Save match", exact: true }).click();
   await page
-    .getByRole("button", { name: "Start the chase →", exact: true })
+    .getByRole("button", { name: "Start match →", exact: true })
     .click();
   await page.waitForFunction(
     () => window.__TAGSPARK__.getState().world?.players.length === 2,
@@ -111,12 +111,12 @@ for (const n of [3, 4])
   test(`initializes ${n} players and preserves settings`, async ({ page }) => {
     await page.goto("/?test");
     await page
-      .getByRole("button", { name: "Let’s play →", exact: true })
+      .getByRole("button", { name: "Play →", exact: true })
       .click();
     for (const key of ["KeyW", "ArrowUp", "KeyT", "KeyI"].slice(0, n))
       await page.keyboard.press(key);
     await page
-      .getByRole("button", { name: "Start the chase →", exact: true })
+      .getByRole("button", { name: "Start match →", exact: true })
       .click();
     await page.waitForFunction(
       (count) => window.__TAGSPARK__.getState().world?.players.length === count,
@@ -140,7 +140,7 @@ test("landing and lobby have no serious accessibility violations or mobile overf
       (v) => v.impact === "serious" || v.impact === "critical",
     ),
   ).toEqual([]);
-  await page.getByRole("button", { name: "Let’s play →", exact: true }).click();
+  await page.getByRole("button", { name: "Play →", exact: true }).click();
   result = await new AxeBuilder({ page }).analyze();
   expect(
     result.violations.filter(
