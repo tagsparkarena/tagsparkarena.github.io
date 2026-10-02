@@ -1,6 +1,6 @@
 # TagSpark Arena
 
-A complete static browser game for 2–4 people sharing one keyboard. Eight arenas, six optional modifiers, speed bursts, shield bubbles and double jumps. Built with Phaser 3, TypeScript and Vite. No API keys, accounts, database or game server.
+A complete static browser game for 2–4 people sharing one keyboard. Eight enlarged arenas, six optional round modifiers, a permanent double-jump toggle, speed bursts and shield bubbles. Built with Phaser 3, TypeScript and Vite. No API keys, accounts, database or game server.
 
 ## Play and scoring
 
@@ -71,11 +71,13 @@ See `QA_REPORT.md` for which checks actually ran in the delivery environment; in
 
 ## Balance and tuning
 
-Edit `TUNING` in `src/config.ts`. Base speed 475 units/s; speed power-up ×1.35 (641.25 units/s) for 4 seconds; shield 3 seconds with another 7-second cooldown; double jump 8 seconds. Ground acceleration and braking are 8500 units/s², air acceleration is 6500, and reversals gain a 1.5× acceleration multiplier. A brief jump tap clears a normal platform tier; holding adds modest extra height. Catch-up starts after 9 seconds without a tag, ramps over 12 seconds, and caps at 12%. Catch-up and Speed Burst multiply, for a bounded maximum ×1.512 before any global round modifier.
+Edit `TUNING` in `src/config.ts`. Base speed 600 units/s; speed power-up ×1.35 (810 units/s) for 4 seconds; shield 3 seconds with another 7-second cooldown; double jump 8 seconds. Ground acceleration and braking are 11000 units/s², air acceleration is 8500, and reversals gain a 1.5× acceleration multiplier. Jump impulse is 1060 with gravity 2800, so a brief tap clears the enlarged platform spacing. Catch-up starts after 9 seconds without a tag, ramps over 12 seconds, and caps at 12%. Catch-up and Speed Burst multiply, for a bounded maximum ×1.512 before any global round modifier.
 
 Pickups telegraph for 1.1 seconds, expire after 13 active seconds, appear every 7 seconds (3.5 for Power-Up Rain), and cap at three. Shields are runners-only. Buffs reset every round. The single active modifier applies equally to everyone. With no modifiers selected, Classic is used.
 
-Maps have broad, flat one-way platforms and ground lanes, with distinct multi-level routes and no ramps or built-in special surfaces. Moving platforms and slippery floors are optional modifiers. Cloud's paired low portals have a cooldown. Arena positions are fixed in a 1000 × 560 coordinate system and scale to fit the browser. New profiles default to Classic; custom modifier choices remain available.
+Maps use a 1400 × 784 coordinate system: 40% wider and taller than before, with unchanged player collision size. Blue dashed platforms are one-way: jump up through them or hold the action key to drop through continuously. Dark platforms block sides and undersides as well as supporting players on top. Rooftop Garden, Clockwork Crossing, Crystal Cavern and Pinwheel Plaza also have solid vertical walls. Moving Platform Mayhem moves only one-way platforms to avoid crushing players. Cloud's paired low portals have a cooldown. New profiles default to Classic.
+
+Permanent Double Jump is a separate checkbox in Customize match. It stays active for all players across every round, combines with any round modifier, resets the extra jump on landing, and suppresses redundant double-jump pickups. It defaults off and is saved with match settings. Collision regression tests cover both sides of walls, solid undersides, drop-through, and all 112 map/round-modifier/double-jump combinations with four players. Automated checks do not replace human balance testing.
 
 Player pickup counts are recorded separately by kind during a round (`World.players[].pickups`) and aggregated in match results. Use those counts during human playtests to identify dominant power-ups. Seed reproduces map/modifier selection and initial random sequence; it is not a full input replay.
 
