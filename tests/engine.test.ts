@@ -135,7 +135,7 @@ describe("power-ups", () => {
     const p = w.players[1];
     w.collect(p, item("speed"));
     w.collect(p, item("speed"));
-    expect(w.speed(p)).toBeCloseTo(TUNING.speed * 1.2);
+    expect(w.speed(p)).toBeCloseTo(TUNING.speed * TUNING.speedMultiplier);
     w.time = 4.01;
     expect(w.active(p, "speed")).toBe(false);
     expect(w.speed(p)).toBe(TUNING.speed);
@@ -210,18 +210,18 @@ describe("movement and maps", () => {
     expect(w.players.every((p) => p.y < 530)).toBe(true);
     const p = w.players[0];
     p.x = 120;
-    p.y = 437;
+    p.y = w.platforms[1].y;
     p.ground = 1;
     p.vy = 0;
     w.tick(WORLD.step, { 0: { ...idle, action: true } });
-    expect(p.y).toBeGreaterThan(437);
+    expect(p.y).toBeGreaterThan(w.platforms[1].y);
     expect(p.ground).toBe(-1);
   });
   it("carries a stationary rider on a moving platform", () => {
-    const w = make([0, 1], 2);
+    const w = make([0, 1], 2, 4);
     const p = w.players[0];
     p.x = 120;
-    p.y = 431;
+    p.y = w.platforms[1].y;
     p.ground = 1;
     const offset = p.x - w.platforms[1].x;
     advance(w, 0.5);
