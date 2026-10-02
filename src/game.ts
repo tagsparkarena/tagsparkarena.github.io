@@ -40,7 +40,7 @@ export function createGame(parent: HTMLElement, session: Session) {
         this.add
           .text(p.x, p.y, `P${p.id + 1} ${PALETTES[p.id].symbol}`, {
             fontFamily: "Arial",
-            fontSize: "13px",
+            fontSize: "17px",
             fontStyle: "bold",
             color: "#173544",
           })
@@ -49,7 +49,7 @@ export function createGame(parent: HTMLElement, session: Session) {
       this.itLabel = this.add
         .text(0, 0, "IT ϟ", {
           fontFamily: "Arial",
-          fontSize: "15px",
+          fontSize: "19px",
           fontStyle: "bold",
           color: "#ffffff",
           backgroundColor: "#173544",
@@ -152,7 +152,8 @@ export function createGame(parent: HTMLElement, session: Session) {
       g.clear();
       const ink = 0x173544;
       g.lineStyle(2, w.map.ground, 0.09);
-      for (let i = 0; i < 6; i++) g.strokeCircle(90 + i * 185, 570, 140);
+      for (let i = 0; i < 8; i++)
+        g.strokeCircle(90 + i * 185, W.height + 10, 140);
       g.fillStyle(w.map.ground, 0.045);
       g.fillRoundedRect(385, 72, 230, 100, 50);
       g.fillRoundedRect(65, 210, 180, 70, 35);
@@ -185,10 +186,9 @@ export function createGame(parent: HTMLElement, session: Session) {
           g.lineBetween(p.x, p.y, p.x + p.w, end);
         } else {
           g.fillRoundedRect(p.x, p.y + 7, p.w, h, 6);
-          g.fillStyle(w.map.ground);
+          g.fillStyle(p.oneWay ? 0x7dbbd0 : w.map.ground);
           g.fillRoundedRect(p.x, p.y, p.w, h, 6);
-          // Ordinary platforms share one material; no decorative power-up colors.
-          g.fillStyle(w.map.ground);
+          g.fillStyle(p.oneWay ? 0xbfe9f4 : 0x173544, p.oneWay ? 1 : 0.3);
           g.fillRoundedRect(p.x, p.y, p.w, 7, 3);
           if (p.bounce) {
             g.lineStyle(2, ink, 0.5);
@@ -197,19 +197,19 @@ export function createGame(parent: HTMLElement, session: Session) {
               g.lineBetween(x + 6, p.y + 10, x + 12, p.y + 17);
             }
           } else {
-            g.fillStyle(0xffffff, 0.1);
+            g.fillStyle(0xffffff, p.oneWay ? 0.85 : 0.15);
             for (let x = p.x + 12; x < p.x + p.w - 10; x += 28)
-              g.fillRect(x, p.y + 13, 9, 2);
+              g.fillRect(x, p.y + 13, p.oneWay ? 14 : 9, p.oneWay ? 3 : 2);
           }
         }
       }
       if (w.map.portals) {
         g.lineStyle(5, 0x7865ca, 0.8);
-        g.strokeEllipse(20, 483, 25, 85);
-        g.strokeEllipse(980, 483, 25, 85);
+        g.strokeEllipse(20, W.floor - 47, 25, 85);
+        g.strokeEllipse(W.width - 20, W.floor - 47, 25, 85);
         g.lineStyle(2, 0xffffff, 0.8);
-        g.strokeEllipse(20, 483, 14, 66);
-        g.strokeEllipse(980, 483, 14, 66);
+        g.strokeEllipse(20, W.floor - 47, 14, 66);
+        g.strokeEllipse(W.width - 20, W.floor - 47, 14, 66);
       }
       this.powerLabels.forEach((t) => t.setVisible(false));
       w.pickups.forEach((item, i) => {

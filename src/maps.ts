@@ -1,4 +1,6 @@
 export interface Platform {
+  oneWay?: boolean;
+  wall?: boolean;
   x: number;
   y: number;
   w: number;
@@ -26,7 +28,7 @@ const spawn = [95, 905, 355, 645];
 // All special platform movement is opt-in through round modifiers.
 const decks = (rows: [number, number, number][]): Platform[] =>
   rows.map(([x, y, w]) => ({ x, y, w }));
-export const MAPS: ArenaMap[] = [
+const layouts: ArenaMap[] = [
   {
     id: "courtyard",
     name: "Sunlit Courtyard",
@@ -214,6 +216,29 @@ export const MAPS: ArenaMap[] = [
     ]),
   },
 ];
+// Expand route spacing without enlarging players. Blue decks are one-way;
+// alternating solid decks and selected ground walls create new escape routes.
+export const MAPS: ArenaMap[] = layouts.map((map) => ({
+  ...map,
+  spawns: [133, 1267, 520, 880],
+  platforms: [
+    ...map.platforms.map((p, i) => ({
+      ...p,
+      x: Math.round(p.x * 1.4),
+      y: Math.round(744 - (530 - p.y) * 1.4),
+      w: Math.round(p.w * 1.4),
+      h: 26,
+      oneWay: i % 3 !== 2,
+    })),
+    ...(["rooftop", "clockwork", "cavern", "pinwheel"].includes(map.id)
+      ? [
+          { x: 450, y: 619, w: 34, h: 125, wall: true, oneWay: false },
+          { x: 916, y: 619, w: 34, h: 125, wall: true, oneWay: false },
+        ]
+      : []),
+  ],
+}));
+
 export interface Modifier {
   id: string;
   name: string;
@@ -225,6 +250,7 @@ export interface Modifier {
   jump?: number;
   spawn?: number;
   moving?: boolean;
+  doubleJump?: boolean;
 }
 export const MODIFIERS: Modifier[] = [
   {

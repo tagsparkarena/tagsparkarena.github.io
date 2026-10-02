@@ -6,6 +6,7 @@ export const defaults = (): Settings => ({
   rounds: 3,
   maps: MAPS.map((m) => m.id),
   modifiers: ["classic"],
+  permanentDoubleJump: false,
   powers: ["speed", "shield", "double"],
   seed: "",
   controls: DEFAULT_CONTROLS.map((c) => ({ ...c })),
@@ -55,6 +56,7 @@ export function loadSettings(): Settings {
       if (typeof v[k] === "number" && Number.isFinite(v[k]))
         d[k] = Math.max(0, Math.min(1, v[k]!));
     d.muted = v.muted === true;
+    d.permanentDoubleJump = v.permanentDoubleJump === true;
   } catch {
     /* Unavailable or stale storage uses safe defaults. */
   }

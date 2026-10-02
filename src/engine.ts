@@ -159,7 +159,9 @@ export class World {
     }));
   }
   active(p: Player, k: PowerKind) {
-    return p.buffs[k] > this.time;
+    return (
+      (k === "double" && !!this.modifier.doubleJump) || p.buffs[k] > this.time
+    );
   }
   speed(p: Player) {
     const bonus =
@@ -186,8 +188,7 @@ export class World {
     for (const p of this.platforms) {
       p.lastX = p.x;
       const amp =
-        p.move ||
-        (this.modifier.moving && p.index > 0 && !p.slope && !p.bounce ? 25 : 0);
+        p.move || (this.modifier.moving && p.oneWay && !p.wall ? 35 : 0);
       p.x =
         p.baseX +
         Math.sin(
@@ -257,10 +258,9 @@ export class World {
     if (!input.jump && p.prevJump && p.vy < -200)
       p.vy *= T.jumpReleaseMultiplier;
     p.prevJump = input.jump;
-    if (input.action && p.ground > 0 && !this.platforms[p.ground].slope) {
+    if (input.action && p.ground > 0 && this.platforms[p.ground].oneWay) {
       p.dropUntil = this.time + 0.2;
       p.ground = -1;
-      p.y += 5;
       p.lastGround = -99;
     }
     const axis = Number(input.right) - Number(input.left);
@@ -282,24 +282,61 @@ export class World {
           (p.ground >= 0 ? T.friction * (this.modifier.friction || ice) : 220) *
             dt,
         );
-    const previousY = p.y,
+    const previousX = p.x,
+      previousY = p.y,
       previousGround = p.ground;
     p.x += p.vx * dt;
+    const half = T.playerWidth / 2;
+    // Sweep horizontally against solid faces; one-way decks never block sides.
+    for (const platform of this.platforms) {
+      if (platform.oneWay || platform.index === 0) continue;
+      const bottom = platform.y + (platform.h || 22);
+      if (p.y <= platform.y || p.y - T.playerHeight >= bottom) continue;
+      if (previousX + half <= platform.x && p.x + half > platform.x) {
+        p.x = platform.x - half;
+        p.vx = 0;
+      } else if (
+        previousX - half >= platform.x + platform.w &&
+        p.x - half < platform.x + platform.w
+      ) {
+        p.x = platform.x + platform.w + half;
+        p.vx = 0;
+      }
+    }
     p.vy = Math.min(
       T.maxFall,
       p.vy + T.gravity * (this.modifier.gravity || 1) * dt,
     );
     p.y += p.vy * dt;
     p.ground = -1;
+    if (p.vy < 0) {
+      // Solid undersides stop jumps, including powered and permanent double jumps.
+      let ceiling = -Infinity;
+      for (const platform of this.platforms) {
+        if (platform.oneWay || platform.index === 0) continue;
+        const bottom = platform.y + (platform.h || 22);
+        if (p.x + half <= platform.x || p.x - half >= platform.x + platform.w)
+          continue;
+        if (
+          previousY - T.playerHeight >= bottom &&
+          p.y - T.playerHeight <= bottom
+        )
+          ceiling = Math.max(ceiling, bottom);
+      }
+      if (ceiling !== -Infinity) {
+        p.y = ceiling + T.playerHeight;
+        p.vy = 0;
+      }
+    }
     if (p.vy >= 0) {
       let bestY = Infinity;
       let best: LivePlatform | undefined;
       for (const platform of this.platforms) {
-        if (p.x < platform.x - 10 || p.x > platform.x + platform.w + 10)
+        if (p.x + half <= platform.x || p.x - half >= platform.x + platform.w)
           continue;
         // Holding drop bypasses every raised platform without resetting fall speed.
         // The arena floor always remains solid; releasing restores normal landings.
-        if (platform.index > 0 && (input.action || this.time < p.dropUntil))
+        if (platform.oneWay && (input.action || this.time < p.dropUntil))
           continue;
         const top = surface(platform, p.x);
         const onSlope = previousGround === platform.index && !!platform.slope;
@@ -335,10 +372,15 @@ export class World {
         }
       }
     }
+    // The top of the shared screen is a boundary, not a respawn trigger.
+    if (p.y < T.playerHeight) {
+      p.y = T.playerHeight;
+      p.vy = Math.max(0, p.vy);
+    }
     if (
       this.map.portals &&
       this.time > p.portalUntil &&
-      p.y > 430 &&
+      p.y > W.floor - 140 &&
       (p.x < 22 || p.x > W.width - 22)
     ) {
       p.x = p.x < 22 ? W.width - 45 : 45;
@@ -352,7 +394,7 @@ export class World {
   }
   respawn(p: Player) {
     const others = this.players.filter((q) => q.id !== p.id);
-    p.x = [95, 355, 645, 905].sort(
+    p.x = [...this.map.spawns].sort(
       (a, b) =>
         Math.min(...others.map((q) => Math.abs(q.x - b))) -
         Math.min(...others.map((q) => Math.abs(q.x - a))),
@@ -378,8 +420,7 @@ export class World {
     const dir = to.x >= from.x ? 1 : -1;
     to.vx = dir * 180;
     from.vx = -dir * 140;
-    to.x = clamp(to.x + dir * 10, 18, W.width - 18);
-    from.x = clamp(from.x - dir * 10, 18, W.width - 18);
+    // Velocity separation is collision-resolved next tick; never teleport into a wall.
     this.events.push({ type: "tag", x: to.x, y: to.y - 20, player: to.id });
     return true;
   }
@@ -409,19 +450,31 @@ export class World {
     return true;
   }
   spawnPower() {
-    if (!this.enabled.length || this.pickups.length >= T.maxPowers) return;
+    const enabled = this.enabled.filter(
+      (kind) => !(kind === "double" && this.modifier.doubleJump),
+    );
+    if (!enabled.length || this.pickups.length >= T.maxPowers) return;
     const candidates = this.platforms
-      .filter((p) => !p.bounce && !p.move && !p.slope)
+      .filter((p) => !p.bounce && !p.move && !p.slope && !p.wall)
       .map((p) => ({ x: p.x + p.w / 2, y: p.y - 28 }))
       .filter(
         (c) =>
           this.players.every(
             (p) => Math.hypot(p.x - c.x, p.y - 20 - c.y) > 80,
-          ) && this.pickups.every((p) => Math.hypot(p.x - c.x, p.y - c.y) > 80),
+          ) &&
+          this.pickups.every((p) => Math.hypot(p.x - c.x, p.y - c.y) > 80) &&
+          !this.platforms.some(
+            (p) =>
+              !p.oneWay &&
+              c.x + 24 > p.x &&
+              c.x - 24 < p.x + p.w &&
+              c.y + 24 > p.y &&
+              c.y - 24 < p.y + (p.h || 22),
+          ),
       );
     if (!candidates.length) return;
     const pos = candidates[Math.floor(this.random() * candidates.length)];
-    const kind = this.enabled[Math.floor(this.random() * this.enabled.length)];
+    const kind = enabled[Math.floor(this.random() * enabled.length)];
     this.pickups.push({
       id: this.nextId++,
       kind,

@@ -1,14 +1,14 @@
-export const WORLD = { width: 1000, height: 560, floor: 530, step: 1 / 120 };
+export const WORLD = { width: 1400, height: 784, floor: 744, step: 1 / 120 };
 export const TUNING = {
-  speed: 475,
-  acceleration: 8500,
-  airAcceleration: 6500,
+  speed: 600,
+  acceleration: 11000,
+  airAcceleration: 8500,
   turnMultiplier: 1.5,
-  friction: 8500,
-  gravity: 2400,
-  jump: 900,
+  friction: 11000,
+  gravity: 2800,
+  jump: 1060,
   jumpReleaseMultiplier: 0.9,
-  maxFall: 1200,
+  maxFall: 1450,
   coyote: 0.11,
   buffer: 0.12,
   tagLock: 1.25,
@@ -104,6 +104,7 @@ export interface Settings {
   rounds: number;
   maps: string[];
   modifiers: string[];
+  permanentDoubleJump: boolean;
   powers: PowerKind[];
   seed: string;
   controls: Controls[];

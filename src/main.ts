@@ -1,5 +1,6 @@
 import "./style.css";
 import {
+  WORLD,
   PALETTES,
   POWER_INFO,
   keyLabel,
@@ -85,14 +86,14 @@ async function mount(target: string, s: Session) {
 }
 function miniature(id: string) {
   const m = MAPS.find((m) => m.id === id)!;
-  return `<svg viewBox="0 0 1000 560" aria-hidden="true"><rect width="1000" height="560" fill="#${m.sky.toString(16)}"/><path d="M0 490 Q250 250 500 490 T1000 490" fill="none" stroke="#173544" stroke-opacity=".05" stroke-width="60"/>${m.platforms.map((p) => `<rect x="${p.x}" y="${p.y}" width="${p.w}" height="25" rx="8" fill="#${m.ground.toString(16)}"/>`).join("")}<rect y="530" width="1000" height="30" fill="#${m.ground.toString(16)}"/></svg>`;
+  return `<svg viewBox="0 0 ${WORLD.width} ${WORLD.height}" aria-hidden="true"><rect width="${WORLD.width}" height="${WORLD.height}" fill="#${m.sky.toString(16)}"/>${m.platforms.map((p) => `<rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h || 26}" rx="5" fill="${p.oneWay ? "#7dbbd0" : "#" + m.ground.toString(16)}"/>${p.oneWay ? `<path d="M${p.x + 8} ${p.y + 12}h${p.w - 16}" stroke="#e6f8ff" stroke-width="3" stroke-dasharray="14 14"/>` : ""}`).join("")}<rect y="${WORLD.floor}" width="${WORLD.width}" height="40" fill="#${m.ground.toString(16)}"/></svg>`;
 }
 function home() {
   stop();
   route = "home";
   document.title = "TagSpark Arena — local multiplayer tag";
   shell(
-    `<section class="intro"><div><h1>TagSpark Arena</h1><p>Play tag with 2–4 players on one keyboard. Use power-ups to escape and avoid being <b>It</b> when time runs out.</p>${btn("Play <span>→</span>", "lobby", "primary")}<div class="small-note">Free browser game · Local multiplayer</div><p class="mobile-note">A desktop or laptop with a keyboard is recommended.</p></div><div class="preview"><div class="arena-label">SUNLIT COURTYARD <span>01 / ${String(MAPS.length).padStart(2, "0")}</span></div><div id="demo" class="demo-canvas"></div><div class="preview-caption"><span class="live-dot"></span> Gameplay preview</div></div></section><div class="feature-strip"><span>↔ <b>Shared-screen multiplayer</b></span><span>ϟ <b>3 power-ups</b></span><span>◇ <b>${MAPS.length} maps</b></span></div><section class="below"><div class="section-heading"><div><h2>Select your map</h2></div><span class="section-meta">${String(MAPS.length).padStart(2, "0")} ARENAS / 06 MODIFIERS</span></div><div class="map-grid">${MAPS.map((m, i) => `<button class="map-card" data-action="map:${m.id}"><div class="map-image">${miniature(m.id)}<span class="map-number">0${i + 1}</span></div><div class="map-copy"><h3>${m.name}</h3><span>${m.tagline}</span></div></button>`).join("")}</div></section><section class="power-section"><div><h2>Power-ups</h2><p>Collect temporary speed, shield and double-jump abilities during a round.</p></div><div class="power-cards">${Object.values(
+    `<section class="intro"><div><h1>TagSpark Arena</h1><p>Play tag with 2–4 players on one keyboard. Use power-ups to escape and avoid being <b>It</b> when time runs out.</p>${btn("Play <span>→</span>", "lobby", "primary")}<div class="small-note">Free browser game · Local multiplayer</div><p class="mobile-note">A desktop or laptop with a keyboard is recommended.</p></div><div class="preview"><div class="arena-label">SUNLIT COURTYARD <span>01 / ${String(MAPS.length).padStart(2, "0")}</span></div><div id="demo" class="demo-canvas"></div><div class="preview-caption"><span class="live-dot"></span> Gameplay preview</div></div></section><div class="feature-strip"><span>↔ <b>Shared-screen multiplayer</b></span><span>ϟ <b>3 power-ups</b></span><span>◇ <b>${MAPS.length} maps</b></span></div><section class="below"><div class="section-heading"><div><h2>Select your map</h2></div><span class="section-meta">${String(MAPS.length).padStart(2, "0")} ARENAS / 07 MODIFIERS</span></div><div class="map-grid">${MAPS.map((m, i) => `<button class="map-card" data-action="map:${m.id}"><div class="map-image">${miniature(m.id)}<span class="map-number">0${i + 1}</span></div><div class="map-copy"><h3>${m.name}</h3><span>${m.tagline}</span></div></button>`).join("")}</div></section><section class="power-section"><div><h2>Power-ups</h2><p>Collect temporary speed, shield and double-jump abilities during a round.</p></div><div class="power-cards">${Object.values(
       POWER_INFO,
     )
       .map(
@@ -127,7 +128,7 @@ function lobby() {
   route = "lobby";
   document.title = "Gather your players — TagSpark";
   shell(
-    `<section class="lobby-heading"><div><h1>Select players</h1><p>Press your jump key or select Join to enter the match.</p></div>${btn("← Back", "home", "quiet")}</section><div class="player-grid">${PALETTES.map((p, id) => `<article class="player-card ${joined.has(id) ? "joined" : ""}" style="--player:${p.color};--player-dark:${p.dark}" id="player-${id}"><div class="player-card-top"><span>PLAYER 0${id + 1}</span><span class="join-status">${joined.has(id) ? "READY" : "OPEN SPOT"}</span></div><div class="avatar"><span>• •</span><small>${p.symbol}</small></div><h2>${p.name}</h2><div class="key-row">${keys(id)}</div><p>Move · Jump · Drop through</p>${btn(joined.has(id) ? "Leave" : "Join", `join:${id}`, joined.has(id) ? "joined-button" : "join-button")}${btn("Remap keys", `remap:${id}`, "text-button")}</article>`).join("")}</div><div class="lobby-bottom"><div class="input-test"><b>Keyboard check</b><span id="key-readout" aria-live="polite">Hold everyone’s movement keys together.</span><small>If a key won’t light up, try remapping it. Some keyboards limit simultaneous presses.</small></div><div class="match-summary"><span>${settings.rounds} rounds · ${settings.duration}s · ${settings.maps.length} maps</span>${btn("Customize match", "custom", "secondary")}${btn("Start match <span>→</span>", "start", "primary")}</div></div><p class="lobby-hint" id="lobby-hint">${joined.size < 2 ? "At least two players need to join." : `${joined.size} players ready.`}</p>`,
+    `<section class="lobby-heading"><div><h1>Select players</h1><p>Press your jump key or select Join to enter the match.</p></div>${btn("← Back", "home", "quiet")}</section><div class="player-grid">${PALETTES.map((p, id) => `<article class="player-card ${joined.has(id) ? "joined" : ""}" style="--player:${p.color};--player-dark:${p.dark}" id="player-${id}"><div class="player-card-top"><span>PLAYER 0${id + 1}</span><span class="join-status">${joined.has(id) ? "READY" : "OPEN SPOT"}</span></div><div class="avatar"><span>• •</span><small>${p.symbol}</small></div><h2>${p.name}</h2><div class="key-row">${keys(id)}</div><p>Move · Jump · Drop through</p>${btn(joined.has(id) ? "Leave" : "Join", `join:${id}`, joined.has(id) ? "joined-button" : "join-button")}${btn("Remap keys", `remap:${id}`, "text-button")}</article>`).join("")}</div><div class="lobby-bottom"><div class="input-test"><b>Keyboard check</b><span id="key-readout" aria-live="polite">Hold everyone’s movement keys together.</span><small>If a key won’t light up, try remapping it. Some keyboards limit simultaneous presses.</small></div><div class="match-summary"><span>${settings.rounds} rounds · ${settings.duration}s · ${settings.maps.length} maps${settings.permanentDoubleJump ? " · Double Jump on" : ""}</span>${btn("Customize match", "custom", "secondary")}${btn("Start match <span>→</span>", "start", "primary")}</div></div><p class="lobby-hint" id="lobby-hint">${joined.size < 2 ? "At least two players need to join." : `${joined.size} players ready.`}</p>`,
   );
   root.querySelector<HTMLButtonElement>('[data-action="start"]')!.disabled =
     joined.size < 2;
@@ -170,7 +171,7 @@ function startRound() {
   );
   const world = new World(
     choice.map,
-    choice.modifier,
+    { ...choice.modifier, doubleJump: matchSettings.permanentDoubleJump },
     scores.map((s) => s.id),
     choice.it,
     matchSettings.duration,
@@ -178,7 +179,7 @@ function startRound() {
     `${matchSeed}:${round}`,
   );
   shell(
-    `<div class="game-heading"><div><span class="eyebrow">ROUND ${round + 1} OF ${matchSettings.rounds}</span><h2>${choice.map.name}</h2></div><div class="game-tools"><span class="modifier-badge" title="${choice.modifier.description}">${choice.modifier.icon} ${choice.modifier.name}</span>${btn("Ⅱ Pause", "pause", "secondary")}${btn("⛶", "fullscreen", "icon-button")}</div></div><section class="game-shell"><div class="game-hud"><div id="player-hud" class="player-hud"></div><div class="timer" id="timer">${formatTime(world.remaining)}</div></div><div class="game-viewport"><div id="arena" class="arena-canvas"></div><div id="countdown" class="countdown"><span>${choice.modifier.name}</span><strong>3</strong><p>${choice.modifier.description}</p></div></div><div class="game-bottom"><span id="it-message">P${world.it + 1} starts as It</span><span>Don’t hold the spark at zero. <kbd>Esc</kbd> pause</span></div></section><div class="under-game"><span>Seed <b>${esc(matchSeed)}</b></span><span>Jump again in the air with ↑↑ · Hold your action key to drop down</span></div>`,
+    `<div class="game-heading"><div><span class="eyebrow">ROUND ${round + 1} OF ${matchSettings.rounds}</span><h2>${choice.map.name}</h2></div><div class="game-tools"><span class="modifier-badge" title="${choice.modifier.description}">${choice.modifier.icon} ${choice.modifier.name}${matchSettings.permanentDoubleJump ? " + Double Jump" : ""}</span>${btn("Ⅱ Pause", "pause", "secondary")}${btn("⛶", "fullscreen", "icon-button")}</div></div><section class="game-shell"><div class="game-hud"><div id="player-hud" class="player-hud"></div><div class="timer" id="timer">${formatTime(world.remaining)}</div></div><div class="game-viewport"><div id="arena" class="arena-canvas"></div><div id="countdown" class="countdown"><span>${choice.modifier.name}</span><strong>3</strong><p>${choice.modifier.description}</p></div></div><div class="game-bottom"><span id="it-message">P${world.it + 1} starts as It</span><span>Blue dashed: pass-through · Dark: solid · <kbd>Esc</kbd> pause</span></div></section><div class="under-game"><span>Seed <b>${esc(matchSeed)}</b></span><span>Blue dashed platforms: hold Down to pass through · Dark platforms and walls: solid</span></div>`,
   );
   keyboard.enabled = true;
   audio.music(true);
@@ -332,7 +333,7 @@ function showSettings() {
 }
 function custom() {
   dialog(
-    `<h2>Match settings</h2><form id="custom-form"><div class="form-grid"><label>Round length<select name="duration">${[30, 60, 90, 120].map((n) => `<option value="${n}" ${settings.duration === n ? "selected" : ""}>${n} seconds</option>`).join("")}</select></label><label>Rounds<select name="rounds">${[1, 3, 5, 7].map((n) => `<option ${settings.rounds === n ? "selected" : ""}>${n}</option>`).join("")}</select></label></div><fieldset><legend>Maps <small>Choose at least one</small></legend>${MAPS.map((m) => `<label class="check-chip"><input type="checkbox" name="maps" value="${m.id}" ${settings.maps.includes(m.id) ? "checked" : ""}>${m.name}</label>`).join("")}</fieldset><fieldset><legend>Round modifiers <small>One randomly selected per round</small></legend>${MODIFIERS.map((m) => `<label class="check-chip" title="${m.description}"><input type="checkbox" name="modifiers" value="${m.id}" ${settings.modifiers.includes(m.id) ? "checked" : ""}>${m.name}</label>`).join("")}</fieldset><fieldset><legend>Power-ups</legend>${Object.entries(
+    `<h2>Match settings</h2><form id="custom-form"><div class="form-grid"><label>Round length<select name="duration">${[30, 60, 90, 120].map((n) => `<option value="${n}" ${settings.duration === n ? "selected" : ""}>${n} seconds</option>`).join("")}</select></label><label>Rounds<select name="rounds">${[1, 3, 5, 7].map((n) => `<option ${settings.rounds === n ? "selected" : ""}>${n}</option>`).join("")}</select></label></div><fieldset><legend>Maps <small>Choose at least one</small></legend>${MAPS.map((m) => `<label class="check-chip"><input type="checkbox" name="maps" value="${m.id}" ${settings.maps.includes(m.id) ? "checked" : ""}>${m.name}</label>`).join("")}</fieldset><fieldset><legend>Round modifiers <small>One randomly selected per round</small></legend>${MODIFIERS.map((m) => `<label class="check-chip" title="${m.description}"><input type="checkbox" name="modifiers" value="${m.id}" ${settings.modifiers.includes(m.id) ? "checked" : ""}>${m.name}</label>`).join("")}</fieldset><fieldset><legend>Match modifier</legend><label class="check-row"><input type="checkbox" name="permanentDoubleJump" ${settings.permanentDoubleJump ? "checked" : ""}> Permanent Double Jump</label><small>Every player gets one extra mid-air jump for the entire match. Combines with any round modifier.</small></fieldset><fieldset><legend>Power-ups</legend>${Object.entries(
       POWER_INFO,
     )
       .map(
@@ -355,6 +356,7 @@ function custom() {
     settings.rounds = Number(f.get("rounds"));
     settings.maps = f.getAll("maps") as string[];
     settings.modifiers = f.getAll("modifiers") as string[];
+    settings.permanentDoubleJump = f.has("permanentDoubleJump");
     settings.powers = f.getAll("powers") as PowerKind[];
     settings.seed = String(f.get("seed"));
     saveSettings(settings);
@@ -385,14 +387,14 @@ function page(name: string) {
   stop();
   route = name;
   const text: Record<string, string> = {
-    how: `<h1>How to play</h1><p>TagSpark is a local party game for 2–4 friends on one keyboard. One player has the spark — that’s “It.” Touch a runner to pass it on.</p><ol class="how-steps"><li><b>Join the lobby</b> Press your jump key in the lobby, then check everyone’s keys work together.</li><li><b>Movement</b> The ring and IT label show who has the spark. Land on platforms from above. Hold your action key to drop through.</li><li><b>Scoring</b> Whoever is It when the timer reaches zero loses. Everyone else earns one win. Most wins takes the match; equal scores share victory.</li></ol><h2>Tag rules</h2><p>A 1.25-second lock after each tag stops instant tag-backs. The chaser gradually gets up to 12% extra speed if they haven’t tagged anyone for a while. Everyone starts with identical movement.</p><h2>Power-ups</h2>${Object.values(
+    how: `<h1>How to play</h1><p>TagSpark is a local party game for 2–4 friends on one keyboard. One player has the spark — that’s “It.” Touch a runner to pass it on.</p><ol class="how-steps"><li><b>Join the lobby</b> Press your jump key in the lobby, then check everyone’s keys work together.</li><li><b>Movement</b> The ring and IT label show who has the spark. Blue dashed platforms allow jumping up through them and dropping down by holding your action key. Dark platforms and vertical walls are solid on all sides. Enable Permanent Double Jump in Match settings for one extra mid-air jump throughout every round.</li><li><b>Scoring</b> Whoever is It when the timer reaches zero loses. Everyone else earns one win. Most wins takes the match; equal scores share victory.</li></ol><h2>Tag rules</h2><p>A 1.25-second lock after each tag stops instant tag-backs. The chaser gradually gets up to 12% extra speed if they haven’t tagged anyone for a while. Everyone starts with identical movement.</p><h2>Power-ups</h2>${Object.values(
       POWER_INFO,
     )
       .map((p) => `<p><b>${p.icon} ${p.name}:</b> ${p.description}</p>`)
       .join(
         "",
       )}<p>Shields cannot be picked up by It, and there’s a cooldown before the same runner can get another. Power-ups reset each round.</p><h2>Default controls</h2><div class="help-controls">${PALETTES.map((p, id) => `<p><b>P${id + 1} ${p.name}</b><span>${keys(id)}</span></p>`).join("")}</div><p>Keys are shown in order: left, right, jump, drop. Tap jump for a short hop; hold it for height. Esc pauses. R restarts only while paused.</p>${btn("Gather your players <span>→</span>", "lobby", "primary")}`,
-    about: `<h1>About TagSpark Arena</h1><p>TagSpark Arena is a free browser playground built around a simple rule: don’t be It at the buzzer. ${MAPS.length} arenas, three temporary power-ups, and six optional modifiers make each chase feel a little different.</p><p>There are no accounts, downloads, online matchmaking, or purchases. Your friends sit beside you, your scores stay on your device, and a rematch is always one click away.</p><h2>Accessibility</h2><p>Players have their own color, number, and symbol. Controls can be remapped, audio can be muted, and the game respects your device’s reduced-motion setting.</p>${btn("Play <span>→</span>", "lobby", "primary")}`,
+    about: `<h1>About TagSpark Arena</h1><p>TagSpark Arena is a free browser playground built around a simple rule: don’t be It at the buzzer. ${MAPS.length} arenas, three temporary power-ups, and seven optional modifiers make each chase feel a little different.</p><p>There are no accounts, downloads, online matchmaking, or purchases. Your friends sit beside you, your scores stay on your device, and a rematch is always one click away.</p><h2>Accessibility</h2><p>Players have their own color, number, and symbol. Controls can be remapped, audio can be muted, and the game respects your device’s reduced-motion setting.</p>${btn("Play <span>→</span>", "lobby", "primary")}`,
     privacy: `<h1>Privacy</h1><p>This version has no accounts, analytics, tracking scripts, or live advertising. Match settings, key bindings, audio preferences, and aggregate game statistics are saved in your browser’s local storage. We do not send these gameplay records to a server.</p><p>Clearing this site’s browser data removes those settings and statistics. Local storage may be unavailable in some private browsing modes; the game still works.</p><p>When this site is hosted, the hosting provider may process ordinary request information such as IP addresses for delivery and security. The owner should update this page with their contact information, hosting details, and any future advertising or consent practices before public launch.</p><h2>Advertising</h2><p>Areas labeled Advertisement are currently empty placeholders. No ad network is contacted. If advertising is enabled later, this notice will need to describe those services and the choices available to visitors.</p>`,
     credits: `<h1>Credits</h1><p>Game design, original character geometry, interface, map layouts, and synthesized sound were created for TagSpark Arena.</p><h2>Textures</h2><p>Subtle pattern textures by <a href="https://kenney.nl/assets/pattern-pack" target="_blank" rel="noopener">Kenney — Pattern Pack</a>, released under CC0. Copies are served from this site, never hotlinked.</p><h2>Built with</h2><p>Phaser 3 (MIT), TypeScript, and Vite. The game uses your device’s system fonts and no remote font service.</p>`,
     contact: `<h1>Contact</h1><p>Contact details will be added by the site owner before public launch.</p><p>For a helpful bug report, include the match seed shown below the arena, map name, player count, browser, and what happened. A keyboard model is useful when reporting missed keys.</p>`,
@@ -480,6 +482,7 @@ function act(action: string) {
     const d = defaults();
     settings.maps = d.maps;
     settings.modifiers = d.modifiers;
+    settings.permanentDoubleJump = d.permanentDoubleJump;
     settings.powers = d.powers;
     settings.duration = d.duration;
     settings.rounds = d.rounds;
@@ -696,7 +699,7 @@ if (import.meta.env.DEV && new URLSearchParams(location.search).has("test")) {
                 to = w.players.find((p) => p.id !== w.it)!;
               from.x = 490;
               to.x = 510;
-              from.y = to.y = 530;
+              from.y = to.y = WORLD.floor;
               from.vx = to.vx = from.vy = to.vy = 0;
               from.safeUntil = to.safeUntil = 0;
               to.buffs.shield = 0;
@@ -749,7 +752,7 @@ if (import.meta.env.DEV && new URLSearchParams(location.search).has("test")) {
           const b = w.players.find((p) => p.id !== w.it)!;
           a.x = 490;
           b.x = 510;
-          a.y = b.y = 530;
+          a.y = b.y = WORLD.floor;
           a.safeUntil = b.safeUntil = 0;
         }
       },
