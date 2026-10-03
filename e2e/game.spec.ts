@@ -77,7 +77,7 @@ test("complete a two-player match with tags, pickups, pause and rematch", async 
     (old) => window.__TAGSPARK__.getState().world.it !== old,
     it,
   );
-  for (const kind of ["speed", "shield", "double"]) {
+  for (const kind of ["speed", "shield", "super"]) {
     await page.evaluate((k) => window.__TAGSPARK__.givePickup(k), kind);
     await page.waitForFunction(
       (k) =>
