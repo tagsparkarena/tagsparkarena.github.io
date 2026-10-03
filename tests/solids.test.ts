@@ -11,7 +11,7 @@ const make = (platforms: Platform[], doubleJump = false) =>
     [0, 1],
     0,
     90,
-    ["speed", "shield", "double"],
+    ["speed", "shield", "super"],
     "solid-test",
   );
 const step = (w: World, frames: number, input: Partial<Input> = {}) => {
@@ -154,17 +154,18 @@ describe("permanent double jump", () => {
     expect(p.jumps).toBe(2);
     step(w, 180);
     expect(p.ground).toBe(0);
-    expect(w.active(p, "double")).toBe(true);
+    expect(w.modifier.doubleJump).toBe(true);
     step(w, 1, { jump: true });
     step(w, 1);
     step(w, 1, { jump: true });
     expect(p.jumps).toBe(2);
   });
-  it("does not spawn redundant double-jump pickups", () => {
+  it("spawns Super Jump pickups with permanent double jump", () => {
     const w = make([], true);
-    w.enabled = ["double"];
+    w.enabled = ["super"];
     w.spawnPower();
-    expect(w.pickups).toHaveLength(0);
+    expect(w.pickups).toHaveLength(1);
+    expect(w.pickups[0].kind).toBe("super");
   });
   it("low gravity and double jump respect the screen ceiling without respawning", () => {
     const w = make([], true),
@@ -176,7 +177,7 @@ describe("permanent double jump", () => {
     expect(p.y).toBeGreaterThanOrEqual(T.playerHeight);
     expect(p.y).toBeLessThan(100);
   });
-  it("defaults off and persists the user's choice", () => {
+  it("defaults only double jump on and preserves an explicit off choice", () => {
     let value: string | null = null;
     vi.stubGlobal("localStorage", {
       getItem: () => value,
@@ -184,8 +185,20 @@ describe("permanent double jump", () => {
         value = s;
       },
     });
-    expect(loadSettings().permanentDoubleJump).toBe(false);
-    saveSettings({ ...defaults(), permanentDoubleJump: true });
     expect(loadSettings().permanentDoubleJump).toBe(true);
+    expect(loadSettings().modifiers).toEqual([]);
+    saveSettings({ ...defaults(), permanentDoubleJump: false });
+    expect(loadSettings().permanentDoubleJump).toBe(false);
+  });
+  it("migrates the old pickup and removes Super Bounce from saved settings", () => {
+    vi.stubGlobal("localStorage", {
+      getItem: () =>
+        JSON.stringify({
+          powers: ["speed", "double"],
+          modifiers: ["bounce", "speedy"],
+        }),
+    });
+    expect(loadSettings().powers).toEqual(["speed", "super"]);
+    expect(loadSettings().modifiers).toEqual(["speedy"]);
   });
 });

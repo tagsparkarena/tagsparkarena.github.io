@@ -18,7 +18,7 @@ const make = (ids = [0, 1], map = 0, mod = 0) =>
     ids,
     ids[0],
     90,
-    ["speed", "shield", "double"],
+    ["speed", "shield", "super"],
     "test",
   );
 function advance(w: World, n: number, input: Record<number, Input> = {}) {
@@ -154,20 +154,33 @@ describe("power-ups", () => {
     w.time = 13.1;
     expect(w.collect(b, item("shield"))).toBe(true);
   });
-  it("allows one extra jump per airtime and no extra jump after expiry", () => {
+  it("boosts jumps temporarily without granting an extra air jump", () => {
     const w = make();
     const p = w.players[1];
-    w.collect(p, item("double"));
+    w.collect(p, item("super"));
+    w.tick(WORLD.step, { 1: { ...idle, jump: true } });
+    expect(p.vy).toBeCloseTo(
+      -TUNING.jump * TUNING.superJumpMultiplier + TUNING.gravity * WORLD.step,
+    );
     advance(w, 0.1, { 1: { ...idle, jump: true } });
     advance(w, 0.1);
     w.tick(WORLD.step, { 1: { ...idle, jump: true } });
-    expect(p.jumps).toBe(2);
+    expect(p.jumps).toBe(1);
     advance(w, 0.02);
     const vy = p.vy;
     w.tick(WORLD.step, { 1: { ...idle, jump: true } });
     expect(p.vy).toBeGreaterThan(vy);
-    w.time = 8.1;
-    expect(w.active(p, "double")).toBe(false);
+    w.time = 6.1;
+    expect(w.active(p, "super")).toBe(false);
+    Object.assign(p, {
+      x: 700,
+      y: WORLD.floor,
+      vy: 0,
+      ground: 0,
+      prevJump: false,
+    });
+    w.tick(WORLD.step, { 1: { ...idle, jump: true } });
+    expect(p.vy).toBeCloseTo(-TUNING.jump + TUNING.gravity * WORLD.step);
   });
   it("telegraphs spawns, caps items and avoids overlapping players", () => {
     const w = make();
@@ -183,7 +196,7 @@ describe("power-ups", () => {
   });
   it("resets all buffs in a new round", () => {
     const first = make();
-    first.collect(first.players[1], item("double"));
+    first.collect(first.players[1], item("super"));
     expect(
       make().players.every((p) => Object.values(p.buffs).every((n) => n === 0)),
     ).toBe(true);
