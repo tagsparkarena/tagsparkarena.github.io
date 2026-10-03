@@ -1,4 +1,5 @@
-// Inert by design. Real advertising requires approval and consent integration.
+// Manual slots remain inert. The public site's head loads the AdSense tag;
+// Auto ads and consent messaging are configured separately in AdSense.
 export const AD_CONFIG = {
   enabled: false,
   publisherId: "ca-pub-4197964753033984",
@@ -19,4 +20,4 @@ export function adPlaceholder(id: keyof typeof AD_PLACEMENTS) {
 }
 export const gameAdRails = () =>
   adPlaceholder("game-left") + adPlaceholder("game-right");
-// Future provider: production only, after consent, never inside game.ts.
+// Manual units require real slot IDs and consent integration, never inside game.ts.
