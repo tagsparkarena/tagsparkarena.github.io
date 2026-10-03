@@ -5,11 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#132d3d" />
     <meta name="google-adsense-account" content="ca-pub-4197964753033984" />
+    <script id="tagspark-adsense-loader">
+      // Never request live advertising from localhost, previews or copied builds.
+      if (location.origin === "https://tagsparkarena.github.io") {
+        const adsense = document.createElement("script");
+        adsense.id = "tagspark-adsense";
+        adsense.async = true;
+        adsense.src =
+          "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4197964753033984";
+        adsense.crossOrigin = "anonymous";
+        document.head.appendChild(adsense);
+      }
+    </script>
     <meta
       name="description"
       content="One keyboard. Four friends. Don't be It when time runs out. Play TagSpark Arena, a free local multiplayer tag game with eight playgrounds and wild power-ups."
     />
-    <meta property="og:title" content="TagSpark Arena — local multiplayer tag" />
+    <meta
+      property="og:title"
+      content="TagSpark Arena — local multiplayer tag"
+    />
     <meta
       property="og:description"
       content="Free browser tag for 2–4 players on one keyboard, with eight maps and three power-ups."

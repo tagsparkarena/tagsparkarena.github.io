@@ -102,16 +102,17 @@ Netlify/Vercel: use the same build and `dist` output as a static Vite app. GitHu
 
 ## Ads and consent
 
-No live ads, analytics or tracking run in this version. Reserved advertising placeholders appear on home, lobby, gameplay and results screens. There are no ad requests during gameplay.
+The head connects Google AdSense on `https://tagsparkarena.github.io` only, using publisher `ca-pub-4197964753033984`. Localhost, file URLs and other previews do not load the provider. Loading the tag contacts Google; it does not mean the site is approved or ads are enabled. The public privacy notice discloses the integration.
 
-To enable ads later:
+Before serving ads:
 
 1. Launch a working site with original content, clear navigation, accurate About/Privacy/Contact pages and game instructions.
 2. Apply to an ad provider such as Google AdSense. Site/account approval is separate from having a working game and is not guaranteed.
-3. Add only the actual publisher ID supplied by the provider. `AD_CONFIG.publisherId` in `src/ads.ts` contains the owner’s publisher ID; this alone does not load an ad. A provider integration must be implemented deliberately.
-4. Create `public/ads.txt` with the exact authorized entry supplied by your account. It will deploy at `/ads.txt`. No fabricated ads.txt publisher entry is included.
+3. The supplied publisher ID is installed in `index.html`. `AD_CONFIG.enabled: false` refers to manual reserved units, not the head connection tag.
+4. `public/ads.txt` contains the owner's authorized entry and deploys at `/ads.txt`.
 5. Implement the provider's current consent requirements for your audience before requesting ads. For Google advertising in the EEA/UK/Switzerland, consult its current certified-CMP requirements. Child-directed sites need their own policy review; a friendly visual style does not settle the audience classification.
-6. Load provider scripts only in production and after the appropriate consent decision. Keep them disabled on localhost, previews and tests. Define an adapter around the reserved slots in `src/ads.ts`/`src/main.ts`, with reserved dimensions to prevent layout shifts.
+6. Publish and verify an applicable consent message in AdSense before enabling ad serving. The head tag can load Google's consent messaging, but installing it does not configure the CMP. For manual ads, define an adapter around the reserved slots in `src/ads.ts`/`src/main.ts`, using real slot IDs and reserved dimensions.
+   Auto ads are managed separately in AdSense. Hash routes are not separate excluded pages: do not assume excluding `#game` protects gameplay. Review excluded areas and disable formats that obscure play controls before enabling Auto ads.
 7. Keep ordinary display ads away from gameplay and play controls. Google's game-page guidance recommends at least 150 px separation. Do not place ordinary AdSense display units in custom full-screen interstitials.
 8. If eligible for H5 Games Ads, use its supported API only at natural match breaks. Keep `betweenMatches` off until that program is approved and integrated. Never interrupt a chase.
 9. Never click your own ads, encourage clicks, incentivize ordinary ad clicks, or use automated/bought low-quality traffic. Test with provider test mode only.
@@ -137,20 +138,20 @@ Revenue is not guaranteed. An estimate is page views / 1,000 × page RPM; RPM an
 - Finish all rounds, confirm last-It loss, shared ties, next round and rematch.
 - Resize, use fullscreen, inspect at 200% text size, and check mobile keyboard guidance.
 - Mute sound/music, reload and verify preferences persist.
-- Review browser console and confirm no advertising/network calls are made to third parties.
+- Review browser console; confirm localhost makes no AdSense requests and the public site loads exactly one publisher tag.
 
 ## Current limits
 
 - Local multiplayer only; no online rooms, bots in playable matches, gamepad or touch controls.
 - Keyboard hardware can suppress simultaneous keys. Software cannot repair hardware ghosting; remapping or a rollover-capable keyboard may be needed.
 - Human balance and cross-browser testing are still valuable. Automated simulation checks validity, not whether a route is fun or competitively optimal.
-- Contact currently links to public GitHub Issues; a private contact method is still needed before ad review. Advertising and consent are documented integration points, not an activated network.
+- Contact includes the owner's public email and GitHub Issues. AdSense approval, consent messaging and placement configuration still need account-side verification.
 - TypeScript 6 is used because the current TypeScript ESLint parser supports versions below 6.1; Phaser is pinned to 3.90 as requested, even though Phaser 4 exists.
 
-Published game: https://tagsparkarena.github.io/. Site homepage: https://tagsparkarena.github.io/. Live advertising remains disabled; ownership verification is not ad approval.
+Published game: https://tagsparkarena.github.io/. Site homepage: https://tagsparkarena.github.io/. AdSense connection code is installed; ownership verification is not ad approval.
 
 ### Reserved advertising placements
 
 Home has two separated banner spaces; gameplay has two 160×600 side spaces on screens at least 1900px wide and a banner below the arena. Lobby and results have banners below their actions. Gameplay placements leave at least 150px between the game and the ad area. Side spaces never shrink the arena and are absent from fullscreen. Narrow screens use only banners.
 
-These are labeled, inert placeholders, not live ads. No provider script, refresh timer or ad request runs. Before activation: obtain site approval, create display ad units, integrate applicable consent controls, update privacy/contact information, and test production placement and no-fill behavior. Do not place display ads over the canvas or use them as forced interstitials. Existing saved match choices are preserved; use Customize match → Reset defaults to apply the new default double jump setting.
+These are labeled, inert placeholders, not individual live ad units. Auto ads do not automatically fill these reserved elements. Before connecting manual slots: obtain site approval, create display ad units, integrate applicable consent controls, and test production placement and no-fill behavior. Do not place display ads over the canvas or use them as forced interstitials. Existing saved match choices are preserved; use Customize match → Reset defaults to apply the new default double jump setting.
