@@ -57,7 +57,7 @@ const layouts: ArenaMap[] = [
     name: "Rooftop Garden",
     tagline: "TWIN TOWERS",
     description:
-      "Two rooftop towers surround a central drop lane. Climb either side and cross the skyline.",
+      "Solid rooftop alcoves at different heights, with a central ground divider and four blue shortcuts.",
     sky: 0xd8eaf0,
     ground: 0x457d7a,
     accent: 0x93d6a3,
@@ -81,7 +81,7 @@ const layouts: ArenaMap[] = [
     name: "Clockwork Crossing",
     tagline: "OFFSET BRIDGES",
     description:
-      "Offset bridges interlock around three drop shafts. Switch levels to cut off a chase.",
+      "Offset solid bridges form side passages and lower dead ends. Four blue platforms connect the routes.",
     sky: 0xf2e9d6,
     ground: 0x967245,
     accent: 0xebc37a,
@@ -104,7 +104,7 @@ const layouts: ArenaMap[] = [
     name: "Crystal Cavern",
     tagline: "SPLIT LEVELS",
     description:
-      "Long shelves, staggered side exits and a split upper gallery. No slippery surprises.",
+      "Long solid shelves form a central recess, an upper alcove and a ground-level dead end on the right.",
     sky: 0xe0dff1,
     ground: 0x74659a,
     accent: 0xc0a4de,
@@ -113,13 +113,13 @@ const layouts: ArenaMap[] = [
       [45, 440, 210],
       [350, 440, 300],
       [745, 440, 210],
-      [50, 345, 350],
+      [50, 345, 430],
       [600, 345, 350],
       [240, 250, 200],
       [560, 250, 200],
       [40, 155, 255],
       [385, 155, 230],
-      [705, 155, 255],
+      [670, 155, 290],
     ]),
   },
   {
@@ -196,7 +196,7 @@ const layouts: ArenaMap[] = [
     name: "Pinwheel Plaza",
     tagline: "LOOPING ROUTES",
     description:
-      "Four staggered terraces wind around a central deck. Cut across or loop around the outside.",
+      "Four wall-and-shelf corners create staggered dead ends from the ground to the upper levels.",
     sky: 0xe9edda,
     ground: 0x6d8050,
     accent: 0xc0d58c,
@@ -205,39 +205,68 @@ const layouts: ArenaMap[] = [
       [40, 440, 190],
       [305, 440, 280],
       [765, 440, 195],
-      [50, 340, 280],
+      [50, 340, 380],
       [470, 340, 220],
       [780, 340, 180],
       [180, 240, 260],
       [565, 240, 300],
-      [40, 145, 180],
+      [40, 145, 240],
       [330, 145, 270],
       [745, 145, 215],
     ]),
   },
 ];
-// Expand route spacing without enlarging players. Blue decks are one-way;
-// alternating solid decks and selected ground walls create new escape routes.
-export const MAPS: ArenaMap[] = layouts.map((map) => ({
-  ...map,
-  spawns: [133, 1267, 520, 880],
-  platforms: [
-    ...map.platforms.map((p, i) => ({
-      ...p,
-      x: Math.round(p.x * 1.4),
-      y: Math.round(744 - (530 - p.y) * 1.4),
-      w: Math.round(p.w * 1.4),
-      h: 26,
-      oneWay: i % 3 !== 2,
-    })),
-    ...(["rooftop", "clockwork", "cavern", "pinwheel"].includes(map.id)
-      ? [
-          { x: 450, y: 619, w: 34, h: 125, wall: true, oneWay: false },
-          { x: 916, y: 619, w: 34, h: 125, wall: true, oneWay: false },
-        ]
-      : []),
-  ],
-}));
+// Explicit shortcuts per arena: solid horizontal decks always outnumber blue ones.
+const shortcuts: Record<string, number[]> = {
+  courtyard: [0, 4, 7, 2],
+  rooftop: [0, 3, 10, 7],
+  clockwork: [0, 1, 8, 6],
+  cavern: [0, 4, 8, 5],
+  cloud: [0, 3, 8, 6],
+  switchback: [0, 4, 6, 3],
+  skybridge: [0, 3, 6, 7],
+  pinwheel: [0, 4, 10, 2],
+};
+
+export const MAPS: ArenaMap[] = layouts.map((map) => {
+  const platforms: Platform[] = map.platforms.map((p, i) => ({
+    ...p,
+    x: Math.round(p.x * 1.4),
+    y: Math.round(744 - (530 - p.y) * 1.4),
+    w: Math.round(p.w * 1.4),
+    h: 26,
+    oneWay: shortcuts[map.id].includes(i),
+  }));
+  // Join the underside of a solid roof to a lower solid shelf (or the floor).
+  // Each bay keeps an open side: a chase can hit a dead end without trapping players.
+  const join = (roof: number, floor: number | null, x: number): Platform => {
+    const y = platforms[roof].y + platforms[roof].h!;
+    return {
+      x,
+      y,
+      w: 32,
+      h: (floor === null ? 744 : platforms[floor].y) - y,
+      wall: true,
+      oneWay: false,
+    };
+  };
+  const walls: Record<string, () => Platform[]> = {
+    rooftop: () => [join(5, 2, 126), join(9, 6, 1200), join(4, null, 700)],
+    clockwork: () => [join(5, 3, 231), join(7, 2, 1305), join(4, 2, 1137)],
+    cavern: () => [join(3, 1, 490), join(9, 6, 1032), join(2, null, 1043)],
+    pinwheel: () => [
+      join(8, 6, 360),
+      join(7, 5, 1092),
+      join(3, 1, 430),
+      join(1, null, 787),
+    ],
+  };
+  return {
+    ...map,
+    spawns: [133, 1267, 520, 880],
+    platforms: [...platforms, ...(walls[map.id]?.() || [])],
+  };
+});
 
 export interface Modifier {
   id: string;
@@ -286,13 +315,6 @@ export const MODIFIERS: Modifier[] = [
     icon: "↔",
     description: "Platforms move horizontally.",
     moving: true,
-  },
-  {
-    id: "bounce",
-    name: "Super Bounce",
-    icon: "↑",
-    description: "Increased jump height.",
-    jump: 1.2,
   },
   {
     id: "speedy",

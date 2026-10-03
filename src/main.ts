@@ -20,7 +20,7 @@ import {
 } from "./storage";
 import { Keyboard } from "./input";
 import { AudioPlayer } from "./audio";
-import { adPlaceholder } from "./ads";
+import { adPlaceholder, gameAdRails } from "./ads";
 import type { Session } from "./game";
 import type Phaser from "phaser";
 const root = document.querySelector<HTMLDivElement>("#app")!;
@@ -93,14 +93,14 @@ function home() {
   route = "home";
   document.title = "TagSpark Arena — local multiplayer tag";
   shell(
-    `<section class="intro"><div><h1>TagSpark Arena</h1><p>Play tag with 2–4 players on one keyboard. Use power-ups to escape and avoid being <b>It</b> when time runs out.</p>${btn("Play <span>→</span>", "lobby", "primary")}<div class="small-note">Free browser game · Local multiplayer</div><p class="mobile-note">A desktop or laptop with a keyboard is recommended.</p></div><div class="preview"><div class="arena-label">SUNLIT COURTYARD <span>01 / ${String(MAPS.length).padStart(2, "0")}</span></div><div id="demo" class="demo-canvas"></div><div class="preview-caption"><span class="live-dot"></span> Gameplay preview</div></div></section><div class="feature-strip"><span>↔ <b>Shared-screen multiplayer</b></span><span>ϟ <b>3 power-ups</b></span><span>◇ <b>${MAPS.length} maps</b></span></div><section class="below"><div class="section-heading"><div><h2>Select your map</h2></div><span class="section-meta">${String(MAPS.length).padStart(2, "0")} ARENAS / 07 MODIFIERS</span></div><div class="map-grid">${MAPS.map((m, i) => `<button class="map-card" data-action="map:${m.id}"><div class="map-image">${miniature(m.id)}<span class="map-number">0${i + 1}</span></div><div class="map-copy"><h3>${m.name}</h3><span>${m.tagline}</span></div></button>`).join("")}</div></section><section class="power-section"><div><h2>Power-ups</h2><p>Collect temporary speed, shield and double-jump abilities during a round.</p></div><div class="power-cards">${Object.values(
+    `<section class="intro"><div><h1>TagSpark Arena</h1><p>Play tag with 2–4 players on one keyboard. Use power-ups to escape and avoid being <b>It</b> when time runs out.</p>${btn("Play <span>→</span>", "lobby", "primary")}<div class="small-note">Free browser game · Local multiplayer</div><p class="mobile-note">A desktop or laptop with a keyboard is recommended.</p></div><div class="preview"><div class="arena-label">SUNLIT COURTYARD <span>01 / ${String(MAPS.length).padStart(2, "0")}</span></div><div id="demo" class="demo-canvas"></div><div class="preview-caption"><span class="live-dot"></span> Gameplay preview</div></div></section><div class="feature-strip"><span>↔ <b>Shared-screen multiplayer</b></span><span>ϟ <b>3 power-ups</b></span><span>◇ <b>${MAPS.length} maps</b></span></div><section class="below"><div class="section-heading"><div><h2>Select your map</h2></div><span class="section-meta">${String(MAPS.length).padStart(2, "0")} ARENAS / 06 MODIFIERS</span></div><div class="map-grid">${MAPS.map((m, i) => `<button class="map-card" data-action="map:${m.id}"><div class="map-image">${miniature(m.id)}<span class="map-number">0${i + 1}</span></div><div class="map-copy"><h3>${m.name}</h3><span>${m.tagline}</span></div></button>`).join("")}</div></section>${adPlaceholder("home-inline")}<section class="power-section"><div><h2>Power-ups</h2><p>Collect temporary speed, shield and higher-jump abilities during a round.</p></div><div class="power-cards">${Object.values(
       POWER_INFO,
     )
       .map(
         (p) =>
           `<div class="power-card"><span class="power-icon" style="background:#${p.color.toString(16)}">${p.icon}</span><div><h3>${p.name}</h3><p>${p.description}</p></div></div>`,
       )
-      .join("")}</div></section>${adPlaceholder()}`,
+      .join("")}</div></section>${adPlaceholder("home-bottom")}`,
   );
   const world = new World(
     MAPS[0],
@@ -108,7 +108,7 @@ function home() {
     [0, 1, 2, 3],
     1,
     999999,
-    ["speed", "double"],
+    ["speed", "super"],
     "demo",
   );
   void mount("demo", {
@@ -179,7 +179,7 @@ function startRound() {
     `${matchSeed}:${round}`,
   );
   shell(
-    `<div class="game-heading"><div><span class="eyebrow">ROUND ${round + 1} OF ${matchSettings.rounds}</span><h2>${choice.map.name}</h2></div><div class="game-tools"><span class="modifier-badge" title="${choice.modifier.description}">${choice.modifier.icon} ${choice.modifier.name}${matchSettings.permanentDoubleJump ? " + Double Jump" : ""}</span>${btn("Ⅱ Pause", "pause", "secondary")}${btn("⛶", "fullscreen", "icon-button")}</div></div><section class="game-shell"><div class="game-hud"><div id="player-hud" class="player-hud"></div><div class="timer" id="timer">${formatTime(world.remaining)}</div></div><div class="game-viewport"><div id="arena" class="arena-canvas"></div><div id="countdown" class="countdown"><span>${choice.modifier.name}</span><strong>3</strong><p>${choice.modifier.description}</p></div></div><div class="game-bottom"><span id="it-message">P${world.it + 1} starts as It</span><span>Blue dashed: pass-through · Dark: solid · <kbd>Esc</kbd> pause</span></div></section><div class="under-game"><span>Seed <b>${esc(matchSeed)}</b></span><span>Blue dashed platforms: hold Down to pass through · Dark platforms and walls: solid</span></div>`,
+    `<div class="game-heading"><div><span class="eyebrow">ROUND ${round + 1} OF ${matchSettings.rounds}</span><h2>${choice.map.name}</h2></div><div class="game-tools"><span class="modifier-badge" title="${choice.modifier.description}">${choice.modifier.icon} ${choice.modifier.name}${matchSettings.permanentDoubleJump ? " + Double Jump" : ""}</span>${btn("Ⅱ Pause", "pause", "secondary")}${btn("⛶", "fullscreen", "icon-button")}</div></div><div class="game-ad-layout">${gameAdRails()}<section class="game-shell"><div class="game-hud"><div id="player-hud" class="player-hud"></div><div class="timer" id="timer">${formatTime(world.remaining)}</div></div><div class="game-viewport"><div id="arena" class="arena-canvas"></div><div id="countdown" class="countdown"><span>${choice.modifier.name}</span><strong>3</strong><p>${choice.modifier.description}</p></div></div><div class="game-bottom"><span id="it-message">P${world.it + 1} starts as It</span><span>Blue dashed: pass-through · Dark: solid · <kbd>Esc</kbd> pause</span></div></section></div><div class="under-game"><span>Seed <b>${esc(matchSeed)}</b></span><span>Blue dashed platforms: hold Down to pass through · Dark platforms and walls: solid</span></div>${adPlaceholder("game-bottom")}`,
   );
   keyboard.enabled = true;
   audio.music(true);
@@ -265,7 +265,7 @@ function finishRound() {
       )
       .join(
         "",
-      )}</div><p class="score-note">Round wins decide the match. Time holding the spark is just a stat. Equal wins = shared victory.</p><div class="results-actions">${btn(final ? "Rematch <span>↻</span>" : "Next round <span>→</span>", final ? "rematch" : "next", "primary")}${btn("Back to lobby", "lobby", "secondary")}</div><p class="seed-line">Match seed: ${esc(matchSeed)}</p>${adPlaceholder()}`,
+      )}</div><p class="score-note">Round wins decide the match. Time holding the spark is just a stat. Equal wins = shared victory.</p><div class="results-actions">${btn(final ? "Rematch <span>↻</span>" : "Next round <span>→</span>", final ? "rematch" : "next", "primary")}${btn("Back to lobby", "lobby", "secondary")}</div><p class="seed-line">Match seed: ${esc(matchSeed)}</p>${adPlaceholder("results")}`,
   );
   if (!reduced) {
     const c = document.createElement("div");
@@ -394,7 +394,7 @@ function page(name: string) {
       .join(
         "",
       )}<p>Shields cannot be picked up by It, and there’s a cooldown before the same runner can get another. Power-ups reset each round.</p><h2>Default controls</h2><div class="help-controls">${PALETTES.map((p, id) => `<p><b>P${id + 1} ${p.name}</b><span>${keys(id)}</span></p>`).join("")}</div><p>Keys are shown in order: left, right, jump, drop. Tap jump for a short hop; hold it for height. Esc pauses. R restarts only while paused.</p>${btn("Gather your players <span>→</span>", "lobby", "primary")}`,
-    about: `<h1>About TagSpark Arena</h1><p>TagSpark Arena is a free browser playground built around a simple rule: don’t be It at the buzzer. ${MAPS.length} arenas, three temporary power-ups, and seven optional modifiers make each chase feel a little different.</p><p>There are no accounts, downloads, online matchmaking, or purchases. Your friends sit beside you, your scores stay on your device, and a rematch is always one click away.</p><h2>Accessibility</h2><p>Players have their own color, number, and symbol. Controls can be remapped, audio can be muted, and the game respects your device’s reduced-motion setting.</p>${btn("Play <span>→</span>", "lobby", "primary")}`,
+    about: `<h1>About TagSpark Arena</h1><p>TagSpark Arena is a free browser playground built around a simple rule: don’t be It at the buzzer. ${MAPS.length} arenas, three temporary power-ups, and six optional modifiers make each chase feel a little different.</p><p>There are no accounts, downloads, online matchmaking, or purchases. Your friends sit beside you, your scores stay on your device, and a rematch is always one click away.</p><h2>Accessibility</h2><p>Players have their own color, number, and symbol. Controls can be remapped, audio can be muted, and the game respects your device’s reduced-motion setting.</p>${btn("Play <span>→</span>", "lobby", "primary")}`,
     privacy: `<h1>Privacy</h1><p>This version has no accounts, analytics, tracking scripts, or live advertising. Match settings, key bindings, audio preferences, and aggregate game statistics are saved in your browser’s local storage. We do not send these gameplay records to a server.</p><p>Clearing this site’s browser data removes those settings and statistics. Local storage may be unavailable in some private browsing modes; the game still works.</p><p>When this site is hosted, the hosting provider may process ordinary request information such as IP addresses for delivery and security. The owner should update this page with their contact information, hosting details, and any future advertising or consent practices before public launch.</p><h2>Advertising</h2><p>Areas labeled Advertisement are currently empty placeholders. No ad network is contacted. If advertising is enabled later, this notice will need to describe those services and the choices available to visitors.</p>`,
     credits: `<h1>Credits</h1><p>Game design, original character geometry, interface, map layouts, and synthesized sound were created for TagSpark Arena.</p><h2>Textures</h2><p>Subtle pattern textures by <a href="https://kenney.nl/assets/pattern-pack" target="_blank" rel="noopener">Kenney — Pattern Pack</a>, released under CC0. Copies are served from this site, never hotlinked.</p><h2>Built with</h2><p>Phaser 3 (MIT), TypeScript, and Vite. The game uses your device’s system fonts and no remote font service.</p>`,
     contact: `<h1>Contact</h1><p>Contact details will be added by the site owner before public launch.</p><p>For a helpful bug report, include the match seed shown below the arena, map name, player count, browser, and what happened. A keyboard model is useful when reporting missed keys.</p>`,
@@ -664,7 +664,7 @@ if (import.meta.env.DEV && new URLSearchParams(location.search).has("test")) {
                   "arrange_tag",
                   "pickup_speed",
                   "pickup_shield",
-                  "pickup_double",
+                  "pickup_super",
                   "finish_round",
                 ],
               },
@@ -681,7 +681,7 @@ if (import.meta.env.DEV && new URLSearchParams(location.search).has("test")) {
                 "arrange_tag",
                 "pickup_speed",
                 "pickup_shield",
-                "pickup_double",
+                "pickup_super",
                 "finish_round",
               ].includes(a || "")
             )

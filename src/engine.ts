@@ -151,17 +151,15 @@ export class World {
       portalUntil: 0,
       safeUntil: T.spawnProtection,
       shieldReady: 0,
-      buffs: { speed: 0, shield: 0, double: 0 },
+      buffs: { speed: 0, shield: 0, super: 0 },
       itTime: 0,
       tags: 0,
-      pickups: { speed: 0, shield: 0, double: 0 },
+      pickups: { speed: 0, shield: 0, super: 0 },
       facing: i % 2 ? -1 : 1,
     }));
   }
   active(p: Player, k: PowerKind) {
-    return (
-      (k === "double" && !!this.modifier.doubleJump) || p.buffs[k] > this.time
-    );
+    return p.buffs[k] > this.time;
   }
   speed(p: Player) {
     const bonus =
@@ -245,9 +243,12 @@ export class World {
     const canGround = p.ground >= 0 || this.time - p.lastGround < T.coyote;
     if (
       p.jumpBuffer > this.time - T.buffer &&
-      (canGround || (this.active(p, "double") && p.jumps < 2))
+      (canGround || (this.modifier.doubleJump && p.jumps < 2))
     ) {
-      p.vy = -T.jump * (this.modifier.jump || 1);
+      p.vy =
+        -T.jump *
+        (this.modifier.jump || 1) *
+        (this.active(p, "super") ? T.superJumpMultiplier : 1);
       p.jumps = canGround ? 1 : 2;
       p.ground = -1;
       p.lastGround = -99;
@@ -403,7 +404,7 @@ export class World {
     p.vx = p.vy = 0;
     p.ground = 0;
     p.safeUntil = this.time + 0.7;
-    p.buffs = { speed: 0, shield: 0, double: 0 };
+    p.buffs = { speed: 0, shield: 0, super: 0 };
   }
   tag(from: Player, to: Player) {
     if (
@@ -436,7 +437,7 @@ export class World {
         ? T.speedDuration
         : item.kind === "shield"
           ? T.shieldDuration
-          : T.doubleDuration);
+          : T.superDuration);
     if (item.kind === "shield")
       p.shieldReady = this.time + T.shieldDuration + T.shieldCooldown;
     p.pickups[item.kind]++;
@@ -450,9 +451,7 @@ export class World {
     return true;
   }
   spawnPower() {
-    const enabled = this.enabled.filter(
-      (kind) => !(kind === "double" && this.modifier.doubleJump),
-    );
+    const enabled = this.enabled;
     if (!enabled.length || this.pickups.length >= T.maxPowers) return;
     const candidates = this.platforms
       .filter((p) => !p.bounce && !p.move && !p.slope && !p.wall)

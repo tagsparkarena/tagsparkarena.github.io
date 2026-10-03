@@ -449,6 +449,47 @@ h3 {
 .ad-space small {
   font-size: 12px;
 }
+.ad-banner {
+  min-height: 114px;
+  background: #edf2ed;
+}
+.ad-home-inline {
+  margin: 64px auto;
+}
+.ad-results,
+.ad-game-bottom {
+  margin-top: 150px;
+}
+.game-ad-layout {
+  position: relative;
+}
+.ad-rail {
+  display: none;
+  position: absolute;
+  top: 0;
+  width: 160px;
+  height: 600px;
+  margin: 0;
+  background: #edf2ed;
+}
+/* Preserve the arena width and 150px clear space on each side. */
+@media (min-width: 1900px) {
+  .ad-rail {
+    display: flex;
+  }
+  .ad-game-left {
+    right: calc(100% + 150px);
+  }
+  .ad-game-right {
+    left: calc(100% + 150px);
+  }
+}
+@media (max-width: 600px) {
+  .ad-banner {
+    min-height: 100px;
+    width: 100%;
+  }
+}
 footer a {
   color: #45605f;
   text-decoration: none;

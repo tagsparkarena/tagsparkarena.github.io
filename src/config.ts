@@ -24,7 +24,8 @@ export const TUNING = {
   speedMultiplier: 1.35,
   shieldDuration: 3,
   shieldCooldown: 7,
-  doubleDuration: 8,
+  superDuration: 6,
+  superJumpMultiplier: 1.3,
   playerWidth: 32,
   playerHeight: 40,
 };
@@ -75,7 +76,7 @@ export const DEFAULT_CONTROLS: Controls[] = [
   { left: "KeyF", right: "KeyH", jump: "KeyT", action: "KeyG" },
   { left: "KeyJ", right: "KeyL", jump: "KeyI", action: "KeyK" },
 ];
-export type PowerKind = "speed" | "shield" | "double";
+export type PowerKind = "speed" | "shield" | "super";
 export const POWER_INFO: Record<
   PowerKind,
   { name: string; icon: string; color: number; description: string }
@@ -92,11 +93,11 @@ export const POWER_INFO: Record<
     color: 0x70dbd9,
     description: "3 seconds of tag protection for runners.",
   },
-  double: {
-    name: "Double Jump",
+  super: {
+    name: "Super Jump",
     icon: "↑↑",
     color: 0xc0a0ff,
-    description: "One extra jump in the air, for 8 seconds.",
+    description: "Higher jumps for 6 seconds.",
   },
 };
 export interface Settings {

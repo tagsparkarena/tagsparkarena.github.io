@@ -5,9 +5,9 @@ export const defaults = (): Settings => ({
   duration: 90,
   rounds: 3,
   maps: MAPS.map((m) => m.id),
-  modifiers: ["classic"],
-  permanentDoubleJump: false,
-  powers: ["speed", "shield", "double"],
+  modifiers: [],
+  permanentDoubleJump: true,
+  powers: ["speed", "shield", "super"],
   seed: "",
   controls: DEFAULT_CONTROLS.map((c) => ({ ...c })),
   sound: 0.5,
@@ -25,7 +25,9 @@ export function loadSettings(): Settings {
     for (const k of ["maps", "modifiers", "powers"] as const) {
       if (Array.isArray(v[k])) {
         const allowed = k === "modifiers" ? MODIFIERS.map((m) => m.id) : d[k];
-        const a = v[k]!.filter((x) => (allowed as string[]).includes(x));
+        const a = v[k]!.map((x) =>
+          k === "powers" && String(x) === "double" ? "super" : x,
+        ).filter((x) => (allowed as string[]).includes(x));
         if (a.length || k !== "maps") (d[k] as string[]) = a;
       }
     }
@@ -56,7 +58,8 @@ export function loadSettings(): Settings {
       if (typeof v[k] === "number" && Number.isFinite(v[k]))
         d[k] = Math.max(0, Math.min(1, v[k]!));
     d.muted = v.muted === true;
-    d.permanentDoubleJump = v.permanentDoubleJump === true;
+    if (typeof v.permanentDoubleJump === "boolean")
+      d.permanentDoubleJump = v.permanentDoubleJump;
   } catch {
     /* Unavailable or stale storage uses safe defaults. */
   }

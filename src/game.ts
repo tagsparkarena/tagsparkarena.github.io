@@ -158,8 +158,18 @@ export function createGame(parent: HTMLElement, session: Session) {
       g.fillRoundedRect(385, 72, 230, 100, 50);
       g.fillRoundedRect(65, 210, 180, 70, 35);
       g.fillRoundedRect(735, 200, 170, 70, 35);
-      for (const p of w.platforms) {
+      // Draw square wall joints behind decks so connected structures have no gaps.
+      for (const p of [...w.platforms].sort(
+        (a, b) => Number(!!b.wall) - Number(!!a.wall),
+      )) {
         const h = p.h || 22;
+        if (p.wall) {
+          g.fillStyle(w.map.ground);
+          g.fillRect(p.x, p.y - 2, p.w, h + 4);
+          g.fillStyle(ink, 0.15);
+          g.fillRect(p.x + p.w - 5, p.y, 5, h);
+          continue;
+        }
         const end = surface(p, p.x + p.w);
         g.fillStyle(ink, 0.12);
         if (p.slope) {
@@ -288,7 +298,7 @@ export function createGame(parent: HTMLElement, session: Session) {
             g.strokeCircle(x, y - 21, 35);
           }
         }
-        if (w.active(p, "double")) {
+        if (w.active(p, "super")) {
           g.fillStyle(0x8861bd);
           g.fillTriangle(x - 6, y - 51, x, y - 58, x + 6, y - 51);
         }
