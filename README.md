@@ -147,7 +147,7 @@ Revenue is not guaranteed. An estimate is page views / 1,000 × page RPM; RPM an
 - Contact currently links to public GitHub Issues; a private contact method is still needed before ad review. Advertising and consent are documented integration points, not an activated network.
 - TypeScript 6 is used because the current TypeScript ESLint parser supports versions below 6.1; Phaser is pinned to 3.90 as requested, even though Phaser 4 exists.
 
-Published game: https://tusharkumar-tag.github.io/Tag-Spark-Arena/. Site homepage: https://tusharkumar-tag.github.io/. Live advertising remains disabled; ownership verification is not ad approval.
+Published game: https://tagsparkarena.github.io/. Site homepage: https://tagsparkarena.github.io/. Live advertising remains disabled; ownership verification is not ad approval.
 
 ### Reserved advertising placements
 
