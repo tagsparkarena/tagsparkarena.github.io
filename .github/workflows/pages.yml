@@ -24,8 +24,8 @@ jobs:
       - run: pnpm test
       - run: pnpm build
         env:
-          VITE_SITE_URL: https://tusharkumar-tag.github.io
-          VITE_BASE_PATH: /Tag-Spark-Arena/
+          VITE_SITE_URL: https://tagsparkarena.github.io
+          VITE_BASE_PATH: /
       - name: Add AdSense verification without loading ads
         run: |
           node --input-type=module <<'NODE'
