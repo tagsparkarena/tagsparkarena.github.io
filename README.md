@@ -1,6 +1,6 @@
 # TagSpark Arena
 
-A complete static browser game for 2–4 people sharing one keyboard. Eight enlarged arenas, six optional round modifiers, a permanent double-jump toggle, speed bursts and shield bubbles. Built with Phaser 3, TypeScript and Vite. No API keys, accounts, database or game server.
+A complete static browser game for 2–4 people sharing one keyboard. Eight enlarged arenas, five optional round modifiers, a permanent double-jump toggle, Super Jump, speed bursts and shield bubbles. Built with Phaser 3, TypeScript and Vite. No API keys, accounts, database or game server.
 
 ## Play and scoring
 
@@ -15,7 +15,7 @@ Default match: three 90-second rounds. Initial It rotates fairly through the joi
 | P3 Sunny ◆ | F    | H     | T    | G            |
 | P4 Sky ■   | J    | L     | I    | K            |
 
-Escape pauses/resumes. R restarts only while paused. Hold jump for height, tap for a short hop. Double Jump adds one air jump while active. Remap keys in the lobby; conflicts are rejected. Test everyone’s simultaneous keys before playing.
+Escape pauses/resumes. R restarts only while paused. Hold jump for height, tap for a short hop. Permanent Double Jump is on by default and adds one air jump. Super Jump temporarily increases jump height. Remap keys in the lobby; conflicts are rejected. Test everyone’s simultaneous keys before playing.
 
 ## Local setup
 
@@ -47,7 +47,7 @@ pnpm exec playwright install chromium
 pnpm test:e2e
 ```
 
-Unit tests cover score rules, exact buzzer timing, tag locks, power-up duration, shield cooldown, double jumps, coyote-friendly movement, simultaneous input, moving platforms, portals, seeded fairness and a 56-combination map/modifier stress simulation. Browser tests cover the complete match journey, all pickups, pause, rematch, 3/4 players, resizing and accessibility.
+Unit tests cover score rules, exact buzzer timing, tag locks, power-up duration, shield cooldown, double jumps, coyote-friendly movement, simultaneous input, moving platforms, portals, seeded fairness and a 48-combination map/modifier stress simulation. Browser tests cover the complete match journey, all pickups, pause, rematch, 3/4 players, resizing and accessibility.
 
 The dev-only `?test` URL exposes repeatable test hooks and a `development_test_action` WebMCP tool. These hooks are removed from production by Vite. `read_game_status` is an optional read-only progressive enhancement for browsers supporting WebMCP. Ordinary browsers do not need it.
 
@@ -71,13 +71,13 @@ See `QA_REPORT.md` for which checks actually ran in the delivery environment; in
 
 ## Balance and tuning
 
-Edit `TUNING` in `src/config.ts`. Base speed 600 units/s; speed power-up ×1.35 (810 units/s) for 4 seconds; shield 3 seconds with another 7-second cooldown; double jump 8 seconds. Ground acceleration and braking are 11000 units/s², air acceleration is 8500, and reversals gain a 1.5× acceleration multiplier. Jump impulse is 1060 with gravity 2800, so a brief tap clears the enlarged platform spacing. Catch-up starts after 9 seconds without a tag, ramps over 12 seconds, and caps at 12%. Catch-up and Speed Burst multiply, for a bounded maximum ×1.512 before any global round modifier.
+Edit `TUNING` in `src/config.ts`. Base speed 600 units/s; speed power-up ×1.35 (810 units/s) for 4 seconds; shield 3 seconds with another 7-second cooldown; Super Jump ×1.3 jump impulse for 6 seconds. Ground acceleration and braking are 11000 units/s², air acceleration is 8500, and reversals gain a 1.5× acceleration multiplier. Jump impulse is 1060 with gravity 2800, so a brief tap clears the enlarged platform spacing. Catch-up starts after 9 seconds without a tag, ramps over 12 seconds, and caps at 12%. Catch-up and Speed Burst multiply, for a bounded maximum ×1.512 before any global round modifier.
 
 Pickups telegraph for 1.1 seconds, expire after 13 active seconds, appear every 7 seconds (3.5 for Power-Up Rain), and cap at three. Shields are runners-only. Buffs reset every round. The single active modifier applies equally to everyone. With no modifiers selected, Classic is used.
 
 Maps use a 1400 × 784 coordinate system: 40% wider and taller than before, with unchanged player collision size. Blue dashed platforms are one-way: jump up through them or hold the action key to drop through continuously. Dark platforms block sides and undersides as well as supporting players on top. Rooftop Garden, Clockwork Crossing, Crystal Cavern and Pinwheel Plaza also have solid vertical walls. Moving Platform Mayhem moves only one-way platforms to avoid crushing players. Cloud's paired low portals have a cooldown. New profiles default to Classic.
 
-Permanent Double Jump is a separate checkbox in Customize match. It stays active for all players across every round, combines with any round modifier, resets the extra jump on landing, and suppresses redundant double-jump pickups. It defaults off and is saved with match settings. Collision regression tests cover both sides of walls, solid undersides, drop-through, and all 112 map/round-modifier/double-jump combinations with four players. Automated checks do not replace human balance testing.
+Permanent Double Jump is a separate checkbox in Customize match. It stays active for all players across every round, combines with any round modifier, resets the extra jump on landing, and combines with Super Jump pickups. It defaults on, with all round modifiers unselected, and is saved with match settings. Collision regression tests cover both sides of walls, solid undersides, drop-through, and all 96 map/round-modifier/double-jump combinations with four players. Automated checks do not replace human balance testing.
 
 Player pickup counts are recorded separately by kind during a round (`World.players[].pickups`) and aggregated in match results. Use those counts during human playtests to identify dominant power-ups. Seed reproduces map/modifier selection and initial random sequence; it is not a full input replay.
 
@@ -102,13 +102,13 @@ Netlify/Vercel: use the same build and `dist` output as a static Vite app. GitHu
 
 ## Ads and consent
 
-No live ads, analytics or tracking run in this version. Advertising placeholders appear only on the landing and results screens. There are no ad requests during gameplay.
+No live ads, analytics or tracking run in this version. Reserved advertising placeholders appear on home, lobby, gameplay and results screens. There are no ad requests during gameplay.
 
 To enable ads later:
 
 1. Launch a working site with original content, clear navigation, accurate About/Privacy/Contact pages and game instructions.
 2. Apply to an ad provider such as Google AdSense. Site/account approval is separate from having a working game and is not guaranteed.
-3. Add only the actual publisher ID supplied by the provider. `AD_CONFIG.publisherId` in `src/ads.ts` is currently blank; setting it alone does not load an ad. A provider integration must be implemented deliberately.
+3. Add only the actual publisher ID supplied by the provider. `AD_CONFIG.publisherId` in `src/ads.ts` contains the owner’s publisher ID; this alone does not load an ad. A provider integration must be implemented deliberately.
 4. Create `public/ads.txt` with the exact authorized entry supplied by your account. It will deploy at `/ads.txt`. No fabricated ads.txt publisher entry is included.
 5. Implement the provider's current consent requirements for your audience before requesting ads. For Google advertising in the EEA/UK/Switzerland, consult its current certified-CMP requirements. Child-directed sites need their own policy review; a friendly visual style does not settle the audience classification.
 6. Load provider scripts only in production and after the appropriate consent decision. Keep them disabled on localhost, previews and tests. Define an adapter around the reserved slots in `src/ads.ts`/`src/main.ts`, with reserved dimensions to prevent layout shifts.
@@ -144,7 +144,13 @@ Revenue is not guaranteed. An estimate is page views / 1,000 × page RPM; RPM an
 - Local multiplayer only; no online rooms, bots in playable matches, gamepad or touch controls.
 - Keyboard hardware can suppress simultaneous keys. Software cannot repair hardware ghosting; remapping or a rollover-capable keyboard may be needed.
 - Human balance and cross-browser testing are still valuable. Automated simulation checks validity, not whether a route is fun or competitively optimal.
-- Contact is intentionally a placeholder and must be filled before launch. Advertising and consent are documented integration points, not an activated network.
+- Contact currently links to public GitHub Issues; a private contact method is still needed before ad review. Advertising and consent are documented integration points, not an activated network.
 - TypeScript 6 is used because the current TypeScript ESLint parser supports versions below 6.1; Phaser is pinned to 3.90 as requested, even though Phaser 4 exists.
 
 Published game: https://tusharkumar-tag.github.io/Tag-Spark-Arena/. Site homepage: https://tusharkumar-tag.github.io/. Live advertising remains disabled; ownership verification is not ad approval.
+
+### Reserved advertising placements
+
+Home has two separated banner spaces; gameplay has two 160×600 side spaces on screens at least 1900px wide and a banner below the arena. Lobby and results have banners below their actions. Gameplay placements leave at least 150px between the game and the ad area. Side spaces never shrink the arena and are absent from fullscreen. Narrow screens use only banners.
+
+These are labeled, inert placeholders, not live ads. No provider script, refresh timer or ad request runs. Before activation: obtain site approval, create display ad units, integrate applicable consent controls, update privacy/contact information, and test production placement and no-fill behavior. Do not place display ads over the canvas or use them as forced interstitials. Existing saved match choices are preserved; use Customize match → Reset defaults to apply the new default double jump setting.
