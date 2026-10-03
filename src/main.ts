@@ -28,7 +28,6 @@ const settings = loadSettings(),
   keyboard = new Keyboard(settings.controls),
   audio = new AudioPlayer(settings);
 const joined = new Set<number>();
-const lobbyHeld = new Set<string>();
 let lastAnnouncedIt = -1;
 let game: Phaser.Game | null = null,
   session: Session | null = null,
@@ -93,7 +92,7 @@ function home() {
   route = "home";
   document.title = "TagSpark Arena — local multiplayer tag";
   shell(
-    `<section class="intro"><div><h1>TagSpark Arena</h1><p>Play tag with 2–4 players on one keyboard. Use power-ups to escape and avoid being <b>It</b> when time runs out.</p>${btn("Play <span>→</span>", "lobby", "primary")}<div class="small-note">Free browser game · Local multiplayer</div><p class="mobile-note">A desktop or laptop with a keyboard is recommended.</p></div><div class="preview"><div class="arena-label">SUNLIT COURTYARD <span>01 / ${String(MAPS.length).padStart(2, "0")}</span></div><div id="demo" class="demo-canvas"></div><div class="preview-caption"><span class="live-dot"></span> Gameplay preview</div></div></section><div class="feature-strip"><span>↔ <b>Shared-screen multiplayer</b></span><span>ϟ <b>3 power-ups</b></span><span>◇ <b>${MAPS.length} maps</b></span></div><section class="below"><div class="section-heading"><div><h2>Select your map</h2></div><span class="section-meta">${String(MAPS.length).padStart(2, "0")} ARENAS / 06 MODIFIERS</span></div><div class="map-grid">${MAPS.map((m, i) => `<button class="map-card" data-action="map:${m.id}"><div class="map-image">${miniature(m.id)}<span class="map-number">0${i + 1}</span></div><div class="map-copy"><h3>${m.name}</h3><span>${m.tagline}</span></div></button>`).join("")}</div></section>${adPlaceholder("home-inline")}<section class="power-section"><div><h2>Power-ups</h2><p>Collect temporary speed, shield and higher-jump abilities during a round.</p></div><div class="power-cards">${Object.values(
+    `<section class="intro"><div><h1>TagSpark Arena</h1><p>Play tag with 2–4 players on one keyboard. Use power-ups to escape and avoid being <b>It</b> when time runs out.</p>${btn("Play <span>→</span>", "lobby", "primary")}<div class="small-note">Free browser game · Local multiplayer</div><p class="mobile-note">A desktop or laptop with a physical keyboard is required. Phones and touch controls are not supported.</p></div><div class="preview"><div class="arena-label">SUNLIT COURTYARD <span>01 / ${String(MAPS.length).padStart(2, "0")}</span></div><div id="demo" class="demo-canvas"></div><div class="preview-caption"><span class="live-dot"></span> Gameplay preview</div></div></section><div class="feature-strip"><span>↔ <b>Shared-screen multiplayer</b></span><span>ϟ <b>3 power-ups</b></span><span>◇ <b>${MAPS.length} maps</b></span></div><section class="below"><div class="section-heading"><div><h2>Select your map</h2></div><span class="section-meta">${String(MAPS.length).padStart(2, "0")} ARENAS / 06 MODIFIERS</span></div><div class="map-grid">${MAPS.map((m, i) => `<button class="map-card" data-action="map:${m.id}"><div class="map-image">${miniature(m.id)}<span class="map-number">0${i + 1}</span></div><div class="map-copy"><h3>${m.name}</h3><span>${m.tagline}</span></div></button>`).join("")}</div></section>${adPlaceholder("home-inline")}<section class="power-section"><div><h2>Power-ups</h2><p>Collect temporary speed, shield and higher-jump abilities during a round.</p></div><div class="power-cards">${Object.values(
       POWER_INFO,
     )
       .map(
@@ -128,23 +127,10 @@ function lobby() {
   route = "lobby";
   document.title = "Gather your players — TagSpark";
   shell(
-    `<section class="lobby-heading"><div><h1>Select players</h1><p>Press your jump key or select Join to enter the match.</p></div>${btn("← Back", "home", "quiet")}</section><div class="player-grid">${PALETTES.map((p, id) => `<article class="player-card ${joined.has(id) ? "joined" : ""}" style="--player:${p.color};--player-dark:${p.dark}" id="player-${id}"><div class="player-card-top"><span>PLAYER 0${id + 1}</span><span class="join-status">${joined.has(id) ? "READY" : "OPEN SPOT"}</span></div><div class="avatar"><span>• •</span><small>${p.symbol}</small></div><h2>${p.name}</h2><div class="key-row">${keys(id)}</div><p>Move · Jump · Drop through</p>${btn(joined.has(id) ? "Leave" : "Join", `join:${id}`, joined.has(id) ? "joined-button" : "join-button")}${btn("Remap keys", `remap:${id}`, "text-button")}</article>`).join("")}</div><div class="lobby-bottom"><div class="input-test"><b>Keyboard check</b><span id="key-readout" aria-live="polite">Hold everyone’s movement keys together.</span><small>If a key won’t light up, try remapping it. Some keyboards limit simultaneous presses.</small></div><div class="match-summary"><span>${settings.rounds} rounds · ${settings.duration}s · ${settings.maps.length} maps${settings.permanentDoubleJump ? " · Double Jump on" : ""}</span>${btn("Customize match", "custom", "secondary")}${btn("Start match <span>→</span>", "start", "primary")}</div></div><p class="lobby-hint" id="lobby-hint">${joined.size < 2 ? "At least two players need to join." : `${joined.size} players ready.`}</p>`,
+    `<section class="lobby-heading"><div><h1>Select players</h1><p>Press your jump key or select Join to enter the match.</p><p class="device-notice">A desktop or laptop with a physical keyboard is required. Phones and touch controls are not supported.</p></div>${btn("← Back", "home", "quiet")}</section><div class="player-grid">${PALETTES.map((p, id) => `<article class="player-card ${joined.has(id) ? "joined" : ""}" style="--player:${p.color};--player-dark:${p.dark}" id="player-${id}"><div class="player-card-top"><span>PLAYER 0${id + 1}</span><span class="join-status">${joined.has(id) ? "READY" : "OPEN SPOT"}</span></div><div class="avatar"><span>• •</span><small>${p.symbol}</small></div><h2>${p.name}</h2><div class="key-row">${keys(id)}</div><p>Move · Jump · Drop through</p>${btn(joined.has(id) ? "Leave" : "Join", `join:${id}`, joined.has(id) ? "joined-button" : "join-button")}${btn("Remap keys", `remap:${id}`, "text-button")}</article>`).join("")}</div><div class="lobby-bottom"><div class="match-summary"><span>${settings.rounds} rounds · ${settings.duration}s · ${settings.maps.length} maps${settings.permanentDoubleJump ? " · Double Jump on" : ""}</span>${btn("Customize match", "custom", "secondary")}${btn("Start match <span>→</span>", "start", "primary")}</div></div><p class="lobby-hint" id="lobby-hint">${joined.size < 2 ? "At least two players need to join." : `${joined.size} players ready.`}</p>${adPlaceholder("lobby")}`,
   );
   root.querySelector<HTMLButtonElement>('[data-action="start"]')!.disabled =
     joined.size < 2;
-  paintKeys();
-}
-function paintKeys() {
-  root
-    .querySelectorAll<HTMLElement>("kbd[data-key]")
-    .forEach((k) =>
-      k.classList.toggle("pressed", lobbyHeld.has(k.dataset.key!)),
-    );
-  const readout = document.getElementById("key-readout");
-  if (readout)
-    readout.textContent = lobbyHeld.size
-      ? `Detected: ${[...lobbyHeld].map(keyLabel).join(" + ")}`
-      : "Hold everyone’s movement keys together.";
 }
 function startMatch() {
   if (joined.size < 2) return;
@@ -387,7 +373,7 @@ function page(name: string) {
   stop();
   route = name;
   const text: Record<string, string> = {
-    how: `<h1>How to play</h1><p>TagSpark is a local party game for 2–4 friends on one keyboard. One player has the spark — that’s “It.” Touch a runner to pass it on.</p><ol class="how-steps"><li><b>Join the lobby</b> Press your jump key in the lobby, then check everyone’s keys work together.</li><li><b>Movement</b> The ring and IT label show who has the spark. Blue dashed platforms allow jumping up through them and dropping down by holding your action key. Dark platforms and vertical walls are solid on all sides. Enable Permanent Double Jump in Match settings for one extra mid-air jump throughout every round.</li><li><b>Scoring</b> Whoever is It when the timer reaches zero loses. Everyone else earns one win. Most wins takes the match; equal scores share victory.</li></ol><h2>Tag rules</h2><p>A 1.25-second lock after each tag stops instant tag-backs. The chaser gradually gets up to 12% extra speed if they haven’t tagged anyone for a while. Everyone starts with identical movement.</p><h2>Power-ups</h2>${Object.values(
+    how: `<h1>How to play</h1><p>TagSpark is a local party game for 2–4 friends sharing a physical keyboard on a desktop or laptop. It does not support phones or touch controls. One player has the spark — that’s “It.” Touch a runner to pass it on.</p><ol class="how-steps"><li><b>Join the lobby</b> Press your jump key or select Join in the lobby. Each player’s controls are listed on their card.</li><li><b>Movement</b> The ring and IT label show who has the spark. Blue dashed platforms allow jumping up through them and dropping down by holding your action key. Dark platforms and vertical walls are solid on all sides. Permanent Double Jump is on by default and gives one extra mid-air jump throughout every round. You can turn it off in Customize match.</li><li><b>Scoring</b> Whoever is It when the timer reaches zero loses. Everyone else earns one win. Most wins takes the match; equal scores share victory.</li></ol><h2>Tag rules</h2><p>A 1.25-second lock after each tag stops instant tag-backs. The chaser gradually gets up to 12% extra speed if they haven’t tagged anyone for a while. Everyone starts with identical movement.</p><h2>Power-ups</h2>${Object.values(
       POWER_INFO,
     )
       .map((p) => `<p><b>${p.icon} ${p.name}:</b> ${p.description}</p>`)
@@ -395,9 +381,9 @@ function page(name: string) {
         "",
       )}<p>Shields cannot be picked up by It, and there’s a cooldown before the same runner can get another. Power-ups reset each round.</p><h2>Default controls</h2><div class="help-controls">${PALETTES.map((p, id) => `<p><b>P${id + 1} ${p.name}</b><span>${keys(id)}</span></p>`).join("")}</div><p>Keys are shown in order: left, right, jump, drop. Tap jump for a short hop; hold it for height. Esc pauses. R restarts only while paused.</p>${btn("Gather your players <span>→</span>", "lobby", "primary")}`,
     about: `<h1>About TagSpark Arena</h1><p>TagSpark Arena is a free browser playground built around a simple rule: don’t be It at the buzzer. ${MAPS.length} arenas, three temporary power-ups, and six optional modifiers make each chase feel a little different.</p><p>There are no accounts, downloads, online matchmaking, or purchases. Your friends sit beside you, your scores stay on your device, and a rematch is always one click away.</p><h2>Accessibility</h2><p>Players have their own color, number, and symbol. Controls can be remapped, audio can be muted, and the game respects your device’s reduced-motion setting.</p>${btn("Play <span>→</span>", "lobby", "primary")}`,
-    privacy: `<h1>Privacy</h1><p>This version has no accounts, analytics, tracking scripts, or live advertising. Match settings, key bindings, audio preferences, and aggregate game statistics are saved in your browser’s local storage. We do not send these gameplay records to a server.</p><p>Clearing this site’s browser data removes those settings and statistics. Local storage may be unavailable in some private browsing modes; the game still works.</p><p>When this site is hosted, the hosting provider may process ordinary request information such as IP addresses for delivery and security. The owner should update this page with their contact information, hosting details, and any future advertising or consent practices before public launch.</p><h2>Advertising</h2><p>Areas labeled Advertisement are currently empty placeholders. No ad network is contacted. If advertising is enabled later, this notice will need to describe those services and the choices available to visitors.</p>`,
+    privacy: `<h1>Privacy</h1><p>This version has no accounts, analytics, tracking scripts, or live advertising. Match settings, key bindings, audio preferences, and aggregate game statistics are saved in your browser’s local storage. We do not send these gameplay records to a server.</p><p>Clearing this site’s browser data removes those settings and statistics. Local storage may be unavailable in some private browsing modes; the game still works.</p><p>This site is hosted on GitHub Pages. GitHub may process request information such as IP addresses to deliver and secure the site. See <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener noreferrer">GitHub’s privacy statement</a>.</p><h2>Advertising</h2><p>Areas labeled Advertisement are currently empty placeholders. No ad network is contacted. If advertising is enabled later, this notice will need to describe those services and the choices available to visitors.</p>`,
     credits: `<h1>Credits</h1><p>Game design, original character geometry, interface, map layouts, and synthesized sound were created for TagSpark Arena.</p><h2>Textures</h2><p>Subtle pattern textures by <a href="https://kenney.nl/assets/pattern-pack" target="_blank" rel="noopener">Kenney — Pattern Pack</a>, released under CC0. Copies are served from this site, never hotlinked.</p><h2>Built with</h2><p>Phaser 3 (MIT), TypeScript, and Vite. The game uses your device’s system fonts and no remote font service.</p>`,
-    contact: `<h1>Contact</h1><p>Contact details will be added by the site owner before public launch.</p><p>For a helpful bug report, include the match seed shown below the arena, map name, player count, browser, and what happened. A keyboard model is useful when reporting missed keys.</p>`,
+    contact: `<h1>Contact</h1><p>For game feedback or bug reports, <a href="https://github.com/tusharkumar-tag/Tag-Spark-Arena/issues" target="_blank" rel="noopener noreferrer">open an issue on GitHub</a> (a GitHub account is required). Issues are public: do not post personal information.</p><p>For a helpful bug report, include the match seed shown below the arena, map name, player count, browser, and what happened. A keyboard model is useful when reporting missed keys.</p>`,
   };
   document.title = `${name === "how" ? "How to play" : name[0].toUpperCase() + name.slice(1)} — TagSpark Arena`;
   shell(
@@ -541,7 +527,6 @@ window.addEventListener("keydown", (e) => {
   if (modal?.open) return;
   if (route === "lobby") {
     if (e.ctrlKey || e.metaKey || e.altKey) return;
-    lobbyHeld.add(e.code);
     if (settings.controls.some((c) => Object.values(c).includes(e.code)))
       e.preventDefault();
     if (!e.repeat) {
@@ -551,19 +536,10 @@ window.addEventListener("keydown", (e) => {
         lobby();
       }
     }
-    paintKeys();
   }
 });
-window.addEventListener("keyup", (e) => {
-  lobbyHeld.delete(e.code);
-  if (route === "lobby") paintKeys();
-});
 window.addEventListener("blur", () => {
-  lobbyHeld.clear();
   pause();
-  document
-    .querySelectorAll("kbd.pressed")
-    .forEach((k) => k.classList.remove("pressed"));
 });
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) pause();

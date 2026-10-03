@@ -300,7 +300,8 @@ export function createGame(parent: HTMLElement, session: Session) {
         }
         if (w.active(p, "super")) {
           g.fillStyle(0x8861bd);
-          g.fillTriangle(x - 6, y - 51, x, y - 58, x + 6, y - 51);
+          g.fillTriangle(x - 6, y - 54, x, y - 61, x + 6, y - 54);
+          g.fillRect(x - 2, y - 54, 4, 8);
         }
         this.labels[i]
           .setPosition(x, y + 16)

@@ -95,7 +95,7 @@ export const POWER_INFO: Record<
   },
   super: {
     name: "Super Jump",
-    icon: "↑↑",
+    icon: "⬆",
     color: 0xc0a0ff,
     description: "Higher jumps for 6 seconds.",
   },

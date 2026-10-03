@@ -11,6 +11,7 @@ export const AD_PLACEMENTS = {
   "game-right": "rail",
   "game-bottom": "banner",
   results: "banner",
+  lobby: "banner",
 } as const;
 export function adPlaceholder(id: keyof typeof AD_PLACEMENTS) {
   const format = AD_PLACEMENTS[id];
