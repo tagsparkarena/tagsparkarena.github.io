@@ -1,8 +1,12 @@
 # TagSpark Arena
 
-A complete static browser game for 2–4 people sharing one keyboard. Eight enlarged arenas, five optional round modifiers, a permanent double-jump toggle, Super Jump, speed bursts and shield bubbles. Built with Phaser 3, TypeScript and Vite. No API keys, accounts, database or game server.
+A static browser game for solo practice against AI or 2–4 people sharing one keyboard. Eight enlarged arenas, five optional round modifiers, a permanent double-jump toggle, Super Jump, speed bursts and shield bubbles. Built with Phaser 3, TypeScript and Vite. No API keys, accounts, database or game server.
 
 ## Play and scoring
+
+Choose **Solo vs AI** in the lobby to play as P1 against one AI opponent. Select Easy, Medium or Hard before starting; your choice stays on this device. The AI uses the same movement, collisions, tag locks and power-up rules as a human. Difficulty changes reaction time, planning horizon and decision accuracy, not movement speed. Solo works with the existing maps, match settings, pause, rounds and rematch. Switching back to local multiplayer preserves your joined friends.
+
+When chasing, the AI searches multistep routes using simulated jumps, landings and platform drops. It follows the route rather than reversing each decision, and replans when the target moves or its movement diverges from the prediction.
 
 Press each player's jump key to join the lobby, or use the Join button. At least two players must join. Touch another player to pass the spark. **The player who is It at time zero loses the round; everyone else gets one round win.** Most round wins wins the match. Equal wins share victory. Time as It is displayed only as a statistic, never used to override the winning rule.
 
