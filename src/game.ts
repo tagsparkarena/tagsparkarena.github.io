@@ -3,6 +3,7 @@ import { PALETTES, POWER_INFO, WORLD as W } from "./config";
 import { World, surface, type Input } from "./engine";
 import type { Keyboard } from "./input";
 import type { AudioPlayer } from "./audio";
+import type { AiOpponent } from "./ai";
 export interface Session {
   world: World;
   keyboard: Keyboard;
@@ -11,6 +12,7 @@ export interface Session {
   countdown: number;
   demo: boolean;
   reduced: boolean;
+  bots?: AiOpponent[];
   onFrame: () => void;
   onEnd: () => void;
 }
@@ -38,12 +40,17 @@ export function createGame(parent: HTMLElement, session: Session) {
       this.ink = this.add.graphics();
       this.labels = session.world.players.map((p) =>
         this.add
-          .text(p.x, p.y, `P${p.id + 1} ${PALETTES[p.id].symbol}`, {
-            fontFamily: "Arial",
-            fontSize: "17px",
-            fontStyle: "bold",
-            color: "#173544",
-          })
+          .text(
+            p.x,
+            p.y,
+            `${session.bots?.some((b) => b.id === p.id) ? "AI" : `P${p.id + 1}`} ${PALETTES[p.id].symbol}`,
+            {
+              fontFamily: "Arial",
+              fontSize: "17px",
+              fontStyle: "bold",
+              color: "#173544",
+            },
+          )
           .setOrigin(0.5),
       );
       this.itLabel = this.add
@@ -89,7 +96,13 @@ export function createGame(parent: HTMLElement, session: Session) {
         } else {
           this.acc += Math.min(delta / 1000, 0.05);
           while (this.acc >= W.step) {
-            let inputs = session.keyboard.read(world.players.map((p) => p.id));
+            let inputs = session.keyboard.read(
+              world.players
+                .filter((p) => !session.bots?.some((b) => b.id === p.id))
+                .map((p) => p.id),
+            );
+            for (const bot of session.bots || [])
+              inputs[bot.id] = bot.read(world);
             if (session.demo) {
               inputs = Object.fromEntries(
                 world.players.map((p) => {
