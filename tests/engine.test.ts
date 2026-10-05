@@ -140,19 +140,64 @@ describe("power-ups", () => {
     expect(w.active(p, "speed")).toBe(false);
     expect(w.speed(p)).toBe(TUNING.speed);
   });
-  it("shield excludes It, protects runners for three seconds and cannot chain", () => {
+  it("shields exclude It and refresh runners to three seconds", () => {
     const w = make();
     const [a, b] = w.players;
     expect(w.collect(a, item("shield"))).toBe(false);
+    expect(a.buffs.shield).toBe(0);
     w.time = 3;
     a.safeUntil = b.safeUntil = 0;
     expect(w.collect(b, item("shield"))).toBe(true);
     expect(w.tag(a, b)).toBe(false);
-    w.time = 6.1;
-    expect(w.active(b, "shield")).toBe(false);
-    expect(w.collect(b, item("shield"))).toBe(false);
-    w.time = 13.1;
+    w.time = 5;
     expect(w.collect(b, item("shield"))).toBe(true);
+    expect(b.buffs.shield).toBe(8);
+    expect(b.pickups.shield).toBe(2);
+    w.time = 7.9;
+    expect(w.tag(a, b)).toBe(false);
+    w.time = 8;
+    expect(w.active(b, "shield")).toBe(false);
+    expect(w.tag(a, b)).toBe(true);
+  });
+  it("leaves shields for runners when It overlaps them", () => {
+    const w = make();
+    const [tagger, runner] = w.players;
+    tagger.x = 500; tagger.y = WORLD.floor;
+    runner.x = 900; runner.y = WORLD.floor;
+    w.pickups = [{ ...item("shield"), x: 500, y: WORLD.floor - 20 }];
+    w.tick(WORLD.step, {});
+    expect(tagger.pickups.shield).toBe(0);
+    expect(w.pickups).toHaveLength(1);
+    runner.x = 500;
+    w.tick(WORLD.step, {});
+    expect(runner.pickups.shield).toBe(1);
+    expect(w.pickups).toHaveLength(0);
+  });
+  it("collects shield rings at their visible edge at boosted running speed", () => {
+    const w = make();
+    const p = w.players[1];
+    p.x = 500;
+    p.y = WORLD.floor;
+    p.ground = 0;
+    p.buffs.speed = 10;
+    p.vx = w.speed(p);
+    w.pickups = [{ ...item("shield"), x: 545, y: WORLD.floor - 20 }];
+    w.tick(WORLD.step, { 1: { ...idle, right: true } });
+    expect(p.pickups.shield).toBe(1);
+    expect(w.pickups).toHaveLength(0);
+    w.pickups = [{ ...item("shield"), id: 2, x: p.x + 10, y: p.y - 20 }];
+    w.tick(WORLD.step, { 1: { ...idle, right: true } });
+    expect(p.pickups.shield).toBe(2);
+    expect(p.buffs.shield).toBeCloseTo(w.time + 3);
+  });
+  it("rejects expired and still-appearing pickups without consuming them", () => {
+    const w = make();
+    expect(w.collect(w.players[1], { ...item("shield"), ready: 1 })).toBe(
+      false,
+    );
+    expect(w.collect(w.players[1], { ...item("shield"), expires: 0 })).toBe(
+      false,
+    );
   });
   it("boosts jumps temporarily without granting an extra air jump", () => {
     const w = make();
