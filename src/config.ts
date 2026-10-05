@@ -100,7 +100,10 @@ export const POWER_INFO: Record<
     description: "Higher jumps for 6 seconds.",
   },
 };
+export type AiDifficulty = "easy" | "medium" | "hard";
 export interface Settings {
+  mode: "local" | "solo";
+  aiDifficulty: AiDifficulty;
   duration: number;
   rounds: number;
   maps: string[];

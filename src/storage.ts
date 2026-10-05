@@ -2,6 +2,8 @@ import { DEFAULT_CONTROLS, type Settings } from "./config";
 import { MAPS, MODIFIERS } from "./maps";
 const KEY = "tagspark-v1";
 export const defaults = (): Settings => ({
+  mode: "local",
+  aiDifficulty: "medium",
   duration: 90,
   rounds: 3,
   maps: MAPS.map((m) => m.id),
@@ -20,6 +22,9 @@ export function loadSettings(): Settings {
     const v = JSON.parse(
       localStorage.getItem(KEY) || "{}",
     ) as Partial<Settings>;
+    if (v.mode === "solo" || v.mode === "local") d.mode = v.mode;
+    if (["easy", "medium", "hard"].includes(v.aiDifficulty || ""))
+      d.aiDifficulty = v.aiDifficulty!;
     if ([30, 60, 90, 120].includes(v.duration || 0)) d.duration = v.duration!;
     if ([1, 3, 5, 7].includes(v.rounds || 0)) d.rounds = v.rounds!;
     for (const k of ["maps", "modifiers", "powers"] as const) {

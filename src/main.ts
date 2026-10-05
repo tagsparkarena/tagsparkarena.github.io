@@ -19,6 +19,8 @@ import {
   defaults,
 } from "./storage";
 import { Keyboard } from "./input";
+import { AiOpponent, AI_LEVELS } from "./ai";
+import type { AiDifficulty } from "./config";
 import { AudioPlayer } from "./audio";
 import { adPlaceholder, gameAdRails } from "./ads";
 import type { Session } from "./game";
@@ -56,9 +58,13 @@ const keys = (id: number) =>
         `<kbd data-key="${code}" title="${action}">${keyLabel(code)}</kbd>`,
     )
     .join("");
+const playerLabel = (id: number) =>
+  matchSettings?.mode === "solo" && id === 1 ? "AI" : `P${id + 1}`;
+const playerName = (id: number) =>
+  matchSettings?.mode === "solo" && id === 1 ? "AI" : PALETTES[id].name;
 const brand = `<a class="brand" href="#home" aria-label="TagSpark Arena home"><span class="brand-icon">ϟ</span> TAGSPARK<span class="brand-small">ARENA</span></a>`;
 function shell(content: string) {
-  root.innerHTML = `<header>${brand}<nav>${btn("How to play", "how")}${btn("⚙ Settings", "settings")}<span class="local-badge">LOCAL MULTIPLAYER</span></nav></header><main>${content}</main><footer><span class="footer-brand">ϟ TAGSPARK ARENA <small>Local multiplayer tag</small></span><div><a href="#about">About</a><a href="#privacy">Privacy</a><a href="#credits">Credits</a><a href="#contact">Contact</a></div></footer><dialog id="modal"></dialog><div class="sr-only" id="announce" role="status" aria-live="polite"></div>`;
+  root.innerHTML = `<header>${brand}<nav>${btn("How to play", "how")}${btn("⚙ Settings", "settings")}<span class="local-badge">SOLO & LOCAL MULTIPLAYER</span></nav></header><main>${content}</main><footer><span class="footer-brand">ϟ TAGSPARK ARENA <small>Solo and local multiplayer tag</small></span><div><a href="#about">About</a><a href="#privacy">Privacy</a><a href="#credits">Credits</a><a href="#contact">Contact</a></div></footer><dialog id="modal"></dialog><div class="sr-only" id="announce" role="status" aria-live="polite"></div>`;
   bind();
   root.querySelector(".brand")?.addEventListener("click", (e) => {
     e.preventDefault();
@@ -90,9 +96,9 @@ function miniature(id: string) {
 function home() {
   stop();
   route = "home";
-  document.title = "TagSpark Arena — local multiplayer tag";
+  document.title = "TagSpark Arena — solo and local multiplayer tag";
   shell(
-    `<section class="intro"><div><h1>TagSpark Arena</h1><p>Play tag with 2–4 players on one keyboard. Use power-ups to escape and avoid being <b>It</b> when time runs out.</p>${btn("Play <span>→</span>", "lobby", "primary")}<div class="small-note">Free browser game · Local multiplayer</div><p class="mobile-note">A desktop or laptop with a physical keyboard is required. Phones and touch controls are not supported.</p></div><div class="preview"><div class="arena-label">SUNLIT COURTYARD <span>01 / ${String(MAPS.length).padStart(2, "0")}</span></div><div id="demo" class="demo-canvas"></div><div class="preview-caption"><span class="live-dot"></span> Gameplay preview</div></div></section><div class="feature-strip"><span>↔ <b>Shared-screen multiplayer</b></span><span>ϟ <b>3 power-ups</b></span><span>◇ <b>${MAPS.length} maps</b></span></div><section class="below"><div class="section-heading"><div><h2>Select your map</h2></div><span class="section-meta">${String(MAPS.length).padStart(2, "0")} ARENAS / 06 MODIFIERS</span></div><div class="map-grid">${MAPS.map((m, i) => `<button class="map-card" data-action="map:${m.id}"><div class="map-image">${miniature(m.id)}<span class="map-number">0${i + 1}</span></div><div class="map-copy"><h3>${m.name}</h3><span>${m.tagline}</span></div></button>`).join("")}</div></section>${adPlaceholder("home-inline")}<section class="power-section"><div><h2>Power-ups</h2><p>Collect temporary speed, shield and higher-jump abilities during a round.</p></div><div class="power-cards">${Object.values(
+    `<section class="intro"><div><h1>TagSpark Arena</h1><p>Play solo against an AI opponent or with 2–4 players on one keyboard. Use power-ups to escape and avoid being <b>It</b> when time runs out.</p>${btn("Play <span>→</span>", "lobby", "primary")}<div class="small-note">Free browser game · Solo or local multiplayer</div><p class="mobile-note">A desktop or laptop with a physical keyboard is required. Phones and touch controls are not supported.</p></div><div class="preview"><div class="arena-label">SUNLIT COURTYARD <span>01 / ${String(MAPS.length).padStart(2, "0")}</span></div><div id="demo" class="demo-canvas"></div><div class="preview-caption"><span class="live-dot"></span> Gameplay preview</div></div></section><div class="feature-strip"><span>↔ <b>Shared-screen multiplayer</b></span><span>ϟ <b>3 power-ups</b></span><span>◇ <b>${MAPS.length} maps</b></span></div><section class="below"><div class="section-heading"><div><h2>Select your map</h2></div><span class="section-meta">${String(MAPS.length).padStart(2, "0")} ARENAS / 06 MODIFIERS</span></div><div class="map-grid">${MAPS.map((m, i) => `<button class="map-card" data-action="map:${m.id}"><div class="map-image">${miniature(m.id)}<span class="map-number">0${i + 1}</span></div><div class="map-copy"><h3>${m.name}</h3><span>${m.tagline}</span></div></button>`).join("")}</div></section>${adPlaceholder("home-inline")}<section class="power-section"><div><h2>Power-ups</h2><p>Collect temporary speed, shield and higher-jump abilities during a round.</p></div><div class="power-cards">${Object.values(
       POWER_INFO,
     )
       .map(
@@ -125,19 +131,57 @@ function home() {
 function lobby() {
   stop();
   route = "lobby";
-  document.title = "Gather your players — TagSpark";
+  const solo = settings.mode === "solo";
+  document.title = "Select game mode — TagSpark Arena";
   shell(
-    `<section class="lobby-heading"><div><h1>Select players</h1><p>Press your jump key or select Join to enter the match.</p><p class="device-notice">A desktop or laptop with a physical keyboard is required. Phones and touch controls are not supported.</p></div>${btn("← Back", "home", "quiet")}</section><div class="player-grid">${PALETTES.map((p, id) => `<article class="player-card ${joined.has(id) ? "joined" : ""}" style="--player:${p.color};--player-dark:${p.dark}" id="player-${id}"><div class="player-card-top"><span>PLAYER 0${id + 1}</span><span class="join-status">${joined.has(id) ? "READY" : "OPEN SPOT"}</span></div><div class="avatar"><span>• •</span><small>${p.symbol}</small></div><h2>${p.name}</h2><div class="key-row">${keys(id)}</div><p>Move · Jump · Drop through</p>${btn(joined.has(id) ? "Leave" : "Join", `join:${id}`, joined.has(id) ? "joined-button" : "join-button")}${btn("Remap keys", `remap:${id}`, "text-button")}</article>`).join("")}</div><div class="lobby-bottom"><div class="match-summary"><span>${settings.rounds} rounds · ${settings.duration}s · ${settings.maps.length} maps${settings.permanentDoubleJump ? " · Double Jump on" : ""}</span>${btn("Customize match", "custom", "secondary")}${btn("Start match <span>→</span>", "start", "primary")}</div></div><p class="lobby-hint" id="lobby-hint">${joined.size < 2 ? "At least two players need to join." : `${joined.size} players ready.`}</p>${adPlaceholder("lobby")}`,
+    `<section class="lobby-heading"><div><h1>${solo ? "Solo practice" : "Select players"}</h1><p>${solo ? "Play against an AI opponent. Choose a difficulty below." : "Press your jump key or select Join to enter the match."}</p><p class="device-notice">A desktop or laptop with a physical keyboard is required. Phones and touch controls are not supported.</p></div>${btn("← Back", "home", "quiet")}</section>
+    <div class="mode-selector" role="group" aria-label="Game mode"><button class="${solo ? "secondary" : "primary"}" data-action="mode:local" aria-pressed="${!solo}">Local multiplayer</button><button class="${solo ? "primary" : "secondary"}" data-action="mode:solo" aria-pressed="${solo}">Solo vs AI</button></div>
+    ${
+      solo
+        ? `<div class="ai-settings"><label for="ai-difficulty">AI difficulty</label><select id="ai-difficulty">${Object.entries(
+            AI_LEVELS,
+          )
+            .map(
+              ([id]) =>
+                `<option value="${id}" ${settings.aiDifficulty === id ? "selected" : ""}>${id[0].toUpperCase() + id.slice(1)}</option>`,
+            )
+            .join(
+              "",
+            )}</select><p id="ai-description">${AI_LEVELS[settings.aiDifficulty].description} Both players use the same movement and tag rules.</p></div>`
+        : ""
+    }
+    <div class="player-grid ${solo ? "solo-grid" : ""}">${PALETTES.filter(
+      (_, id) => !solo || id < 2,
+    )
+      .map((p, id) => {
+        const bot = solo && id === 1;
+        const ready = solo || joined.has(id);
+        return `<article class="player-card ${ready ? "joined" : ""}" style="--player:${p.color};--player-dark:${p.dark}" id="player-${id}"><div class="player-card-top"><span>${bot ? "AI OPPONENT" : `PLAYER 0${id + 1}`}</span><span class="join-status">${ready ? "READY" : "OPEN SPOT"}</span></div><div class="avatar"><span>• •</span><small>${p.symbol}</small></div><h2>${bot ? "AI" : p.name}</h2>${bot ? `<p>Chases, escapes and collects power-ups.</p><p class="ai-level">${settings.aiDifficulty[0].toUpperCase() + settings.aiDifficulty.slice(1)} difficulty</p>` : `<div class="key-row">${keys(id)}</div><p>Move · Jump · Drop through</p>${solo ? '<p class="ai-level">You control this player</p>' : btn(joined.has(id) ? "Leave" : "Join", `join:${id}`, joined.has(id) ? "joined-button" : "join-button")}${btn("Remap keys", `remap:${id}`, "text-button")}`}</article>`;
+      })
+      .join(
+        "",
+      )}</div><div class="lobby-bottom"><div class="match-summary"><span>${settings.rounds} rounds · ${settings.duration}s · ${settings.maps.length} maps${settings.permanentDoubleJump ? " · Double Jump on" : ""}</span>${btn("Customize match", "custom", "secondary")}${btn("Start match <span>→</span>", "start", "primary")}</div></div><p class="lobby-hint" id="lobby-hint">${solo ? "Ready to play. You are P1; the AI is P2." : joined.size < 2 ? "At least two players need to join." : `${joined.size} players ready.`}</p>${adPlaceholder("lobby")}`,
   );
   root.querySelector<HTMLButtonElement>('[data-action="start"]')!.disabled =
-    joined.size < 2;
+    !solo && joined.size < 2;
+  root
+    .querySelector<HTMLSelectElement>("#ai-difficulty")
+    ?.addEventListener("change", (e) => {
+      const select = e.currentTarget as HTMLSelectElement;
+      settings.aiDifficulty = select.value as AiDifficulty;
+      saveSettings(settings);
+      document.getElementById("ai-description")!.textContent =
+        `${AI_LEVELS[settings.aiDifficulty].description} Both players use the same movement and tag rules.`;
+      root.querySelector("#player-1 .ai-level")!.textContent =
+        `${settings.aiDifficulty[0].toUpperCase() + settings.aiDifficulty.slice(1)} difficulty`;
+    });
 }
 function startMatch() {
-  if (joined.size < 2) return;
+  if (settings.mode !== "solo" && joined.size < 2) return;
   round = 0;
   matchSeed = settings.seed || Math.random().toString(36).slice(2, 9);
   matchSettings = structuredClone(settings);
-  scores = [...joined]
+  scores = (settings.mode === "solo" ? [0, 1] : [...joined])
     .sort()
     .map((id) => ({ id, wins: 0, itTime: 0, tags: 0, pickups: 0 }));
   audio.unlock();
@@ -165,7 +209,7 @@ function startRound() {
     `${matchSeed}:${round}`,
   );
   shell(
-    `<div class="game-heading"><div><span class="eyebrow">ROUND ${round + 1} OF ${matchSettings.rounds}</span><h2>${choice.map.name}</h2></div><div class="game-tools"><span class="modifier-badge" title="${choice.modifier.description}">${choice.modifier.icon} ${choice.modifier.name}${matchSettings.permanentDoubleJump ? " + Double Jump" : ""}</span>${btn("Ⅱ Pause", "pause", "secondary")}${btn("⛶", "fullscreen", "icon-button")}</div></div><div class="game-ad-layout">${gameAdRails()}<section class="game-shell"><div class="game-hud"><div id="player-hud" class="player-hud"></div><div class="timer" id="timer">${formatTime(world.remaining)}</div></div><div class="game-viewport"><div id="arena" class="arena-canvas"></div><div id="countdown" class="countdown"><span>${choice.modifier.name}</span><strong>3</strong><p>${choice.modifier.description}</p></div></div><div class="game-bottom"><span id="it-message">P${world.it + 1} starts as It</span><span>Blue dashed: pass-through · Dark: solid · <kbd>Esc</kbd> pause</span></div></section></div><div class="under-game"><span>Seed <b>${esc(matchSeed)}</b></span><span>Blue dashed platforms: hold Down to pass through · Dark platforms and walls: solid</span></div>${adPlaceholder("game-bottom")}`,
+    `<div class="game-heading"><div><span class="eyebrow">ROUND ${round + 1} OF ${matchSettings.rounds}${matchSettings.mode === "solo" ? ` · SOLO / ${matchSettings.aiDifficulty.toUpperCase()}` : ""}</span><h2>${choice.map.name}</h2></div><div class="game-tools"><span class="modifier-badge" title="${choice.modifier.description}">${choice.modifier.icon} ${choice.modifier.name}${matchSettings.permanentDoubleJump ? " + Double Jump" : ""}</span>${btn("Ⅱ Pause", "pause", "secondary")}${btn("⛶", "fullscreen", "icon-button")}</div></div><div class="game-ad-layout">${gameAdRails()}<section class="game-shell"><div class="game-hud"><div id="player-hud" class="player-hud"></div><div class="timer" id="timer">${formatTime(world.remaining)}</div></div><div class="game-viewport"><div id="arena" class="arena-canvas"></div><div id="countdown" class="countdown"><span>${choice.modifier.name}</span><strong>3</strong><p>${choice.modifier.description}</p></div></div><div class="game-bottom"><span id="it-message">${playerLabel(world.it)} starts as It</span><span>Blue dashed: pass-through · Dark: solid · <kbd>Esc</kbd> pause</span></div></section></div><div class="under-game"><span>Seed <b>${esc(matchSeed)}</b></span><span>Blue dashed platforms: hold Down to pass through · Dark platforms and walls: solid</span></div>${adPlaceholder("game-bottom")}`,
   );
   keyboard.enabled = true;
   audio.music(true);
@@ -177,6 +221,16 @@ function startRound() {
     countdown: 3,
     demo: false,
     reduced,
+    bots:
+      matchSettings.mode === "solo"
+        ? [
+            new AiOpponent(
+              1,
+              matchSettings.aiDifficulty,
+              `${matchSeed}:${round}`,
+            ),
+          ]
+        : [],
     onFrame: updateHud,
     onEnd: finishRound,
   });
@@ -190,7 +244,7 @@ function updateHud() {
   const w = session.world;
   if (w.it !== lastAnnouncedIt) {
     document.getElementById("announce")!.textContent =
-      `Player ${w.it + 1} ${PALETTES[w.it].name} is It.`;
+      `${playerLabel(w.it)} is It.`;
     lastAnnouncedIt = w.it;
   }
   document.getElementById("timer")!.textContent = formatTime(w.remaining);
@@ -205,7 +259,7 @@ function updateHud() {
   document.getElementById("player-hud")!.innerHTML = w.players
     .map(
       (p) =>
-        `<div class="hud-player ${w.it === p.id ? "is-it" : ""}" style="--player:${PALETTES[p.id].color}"><span class="hud-dot">${PALETTES[p.id].symbol}</span><div><b>P${p.id + 1} ${w.it === p.id ? "· IT" : ""}</b><small>${
+        `<div class="hud-player ${w.it === p.id ? "is-it" : ""}" style="--player:${PALETTES[p.id].color}"><span class="hud-dot">${PALETTES[p.id].symbol}</span><div><b>${playerLabel(p.id)} ${w.it === p.id ? "· IT" : ""}</b><small>${
           Object.entries(p.buffs)
             .filter(([, t]) => t > w.time)
             .map(
@@ -219,7 +273,7 @@ function updateHud() {
   document.getElementById("it-message")!.textContent =
     w.time < w.tagLockedUntil && w.time > 2
       ? "Tag lock — take a breath!"
-      : `P${w.it + 1} ${PALETTES[w.it].name} has the spark`;
+      : `${playerLabel(w.it)} has the spark`;
 }
 function finishRound() {
   if (!session) return;
@@ -241,13 +295,13 @@ function finishRound() {
   route = "results";
   const leaders = winners(scores);
   shell(
-    `<section class="results-heading"><span class="eyebrow">${final ? "MATCH COMPLETE" : `ROUND ${round + 1} COMPLETE`}</span><div class="result-spark">${final ? "✦" : "ϟ"}</div><h1>${final ? (leaders.length === 1 ? `${PALETTES[leaders[0]].name} wins` : "Match tied") : `${PALETTES[loser].name} loses the round`}</h1><p>${final ? `${leaders.map((id) => `P${id + 1}`).join(" & ")} ${leaders.length === 1 ? "wins" : "share the win"} with ${Math.max(...scores.map((s) => s.wins))} round wins.` : "All other players earn one round win."}</p></section><div class="scoreboard"><div class="score-head"><span>PLAYER</span><span>WINS</span><span>TIME AS IT</span><span>TAGS</span><span>PICKUPS</span></div>${[
+    `<section class="results-heading"><span class="eyebrow">${final ? "MATCH COMPLETE" : `ROUND ${round + 1} COMPLETE`}</span><div class="result-spark">${final ? "✦" : "ϟ"}</div><h1>${final ? (leaders.length === 1 ? `${playerName(leaders[0])} wins` : "Match tied") : `${playerName(loser)} loses the round`}</h1><p>${final ? `${leaders.map((id) => playerLabel(id)).join(" & ")} ${leaders.length === 1 ? "wins" : "share the win"} with ${Math.max(...scores.map((s) => s.wins))} round wins.` : "All other players earn one round win."}</p></section><div class="scoreboard"><div class="score-head"><span>PLAYER</span><span>WINS</span><span>TIME AS IT</span><span>TAGS</span><span>PICKUPS</span></div>${[
       ...scores,
     ]
       .sort((a, b) => b.wins - a.wins || a.id - b.id)
       .map(
         (s) =>
-          `<div class="score-row"><span><i style="background:${PALETTES[s.id].color}">${PALETTES[s.id].symbol}</i><b>P${s.id + 1} ${PALETTES[s.id].name}</b></span><strong>${s.wins}</strong><span>${s.itTime.toFixed(1)}s</span><span>${s.tags}</span><span>${s.pickups}</span></div>`,
+          `<div class="score-row"><span><i style="background:${PALETTES[s.id].color}">${PALETTES[s.id].symbol}</i><b>${playerLabel(s.id)}${playerLabel(s.id) === "AI" ? "" : ` ${PALETTES[s.id].name}`}</b></span><strong>${s.wins}</strong><span>${s.itTime.toFixed(1)}s</span><span>${s.tags}</span><span>${s.pickups}</span></div>`,
       )
       .join(
         "",
@@ -373,15 +427,18 @@ function page(name: string) {
   stop();
   route = name;
   const text: Record<string, string> = {
-    how: `<h1>How to play</h1><p>TagSpark is a local party game for 2–4 friends sharing a physical keyboard on a desktop or laptop. It does not support phones or touch controls. One player has the spark — that’s “It.” Touch a runner to pass it on.</p><ol class="how-steps"><li><b>Join the lobby</b> Press your jump key or select Join in the lobby. Each player’s controls are listed on their card.</li><li><b>Movement</b> The ring and IT label show who has the spark. Blue dashed platforms allow jumping up through them and dropping down by holding your action key. Dark platforms and vertical walls are solid on all sides. Permanent Double Jump is on by default and gives one extra mid-air jump throughout every round. You can turn it off in Customize match.</li><li><b>Scoring</b> Whoever is It when the timer reaches zero loses. Everyone else earns one win. Most wins takes the match; equal scores share victory.</li></ol><h2>Tag rules</h2><p>A 1.25-second lock after each tag stops instant tag-backs. The chaser gradually gets up to 12% extra speed if they haven’t tagged anyone for a while. Everyone starts with identical movement.</p><h2>Power-ups</h2>${Object.values(
+    how: `<h1>How to play</h1><p>Play TagSpark solo against an AI opponent, or with 2–4 friends sharing a physical keyboard on a desktop or laptop. It does not support phones or touch controls. One player has the spark — that’s “It.” Touch a runner to pass it on.</p><ol class="how-steps"><li><b>Choose a mode</b> Select Solo vs AI to practice as P1 against Easy, Medium or Hard AI. Select Local multiplayer to play with friends, then press your jump key or select Join in the lobby. Each player’s controls are listed on their card.</li><li><b>Movement</b> The ring and IT label show who has the spark. Blue dashed platforms allow jumping up through them and dropping down by holding your action key. Dark platforms and vertical walls are solid on all sides. Permanent Double Jump is on by default and gives one extra mid-air jump throughout every round. You can turn it off in Customize match.</li><li><b>Scoring</b> Whoever is It when the timer reaches zero loses. Everyone else earns one win. Most wins takes the match; equal scores share victory.</li></ol><h2>Tag rules</h2><p>A 1.25-second lock after each tag stops instant tag-backs. The chaser gradually gets up to 12% extra speed if they haven’t tagged anyone for a while. Everyone starts with identical movement.</p><h2>Power-ups</h2>${Object.values(
       POWER_INFO,
     )
       .map((p) => `<p><b>${p.icon} ${p.name}:</b> ${p.description}</p>`)
       .join(
         "",
       )}<p>Shields cannot be picked up by It, and there’s a cooldown before the same runner can get another. Power-ups reset each round.</p><h2>Default controls</h2><div class="help-controls">${PALETTES.map((p, id) => `<p><b>P${id + 1} ${p.name}</b><span>${keys(id)}</span></p>`).join("")}</div><p>Keys are shown in order: left, right, jump, drop. Tap jump for a short hop; hold it for height. Esc pauses. R restarts only while paused.</p>${btn("Gather your players <span>→</span>", "lobby", "primary")}`,
-    about: `<h1>About TagSpark Arena</h1><p>TagSpark Arena is a free browser playground built around a simple rule: don’t be It at the buzzer. ${MAPS.length} arenas, three temporary power-ups, and six optional modifiers make each chase feel a little different.</p><p>There are no accounts, downloads, online matchmaking, or purchases. Your friends sit beside you, your scores stay on your device, and a rematch is always one click away.</p><h2>Accessibility</h2><p>Players have their own color, number, and symbol. Controls can be remapped, audio can be muted, and the game respects your device’s reduced-motion setting.</p>${btn("Play <span>→</span>", "lobby", "primary")}`,
-    privacy: `<h1>Privacy</h1><p>The game has no player accounts or gameplay analytics. Match settings, key bindings, audio preferences, and aggregate game statistics are saved in your browser’s local storage. We do not send these gameplay records to a server.</p><p>Clearing this site’s browser data removes those settings and statistics. Local storage may be unavailable in some private browsing modes; the game still works.</p><p>This site is hosted on GitHub Pages. GitHub may process request information such as IP addresses to deliver and secure the site. See <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener noreferrer">GitHub’s privacy statement</a>.</p><h2>Advertising</h2><p>The public site loads Google AdSense code. Loading this code contacts Google even when no ad is displayed. Google and its advertising partners may process IP addresses, device and browser information, and use cookies or similar identifiers to deliver, measure and, where permitted by your choices, personalize advertising.</p><p>See <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener noreferrer">how Google uses information from sites that use its services</a> and <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener noreferrer">Google’s advertising policies and choices</a>. Where a consent message is shown, use its options to accept, decline or manage advertising consent. You can also manage cookies in your browser.</p><p>Reserved advertisement spaces are not connected to individual ad units yet. Ad availability depends on Google’s approval, account settings and applicable consent requirements. Local previews do not load AdSense.</p><h2>Contact</h2><p>Privacy questions: <a href="mailto:tushar.kumar6414@gmail.com">tushar.kumar6414@gmail.com</a>.</p>`,
+    about: `<h1>About TagSpark Arena</h1><p>TagSpark Arena is a free browser playground built around a simple rule: don’t be It at the buzzer. ${MAPS.length} arenas, three temporary power-ups, and six optional modifiers make each chase feel a little different.</p><p>There are no accounts, downloads, online matchmaking, or purchases. Play against the AI when you’re on your own, or with friends beside you. Your scores stay on your device, and a rematch is always one click away.</p><h2>Accessibility</h2><p>Players have their own color, number, and symbol. Controls can be remapped, audio can be muted, and the game respects your device’s reduced-motion setting.</p>${btn("Play <span>→</span>", "lobby", "primary")}`,
+    privacy:
+      import.meta.env.MODE === "crazygames"
+        ? `<h1>Privacy</h1><p>This game has no player accounts, gameplay analytics or external advertising. Match settings, key bindings, audio preferences and aggregate statistics are saved only in your browser’s local storage. They are not cloud saves, and clearing browser data removes them. Matches do not resume after reloading.</p><p>This copy is hosted by CrazyGames. See <a href="https://www.crazygames.com/privacy-policy" target="_blank" rel="noopener noreferrer">CrazyGames’ privacy policy</a> for platform services and data processing.</p><h2>Contact</h2><p>Privacy questions: <a href="mailto:tushar.kumar6414@gmail.com">tushar.kumar6414@gmail.com</a>.</p>`
+        : `<h1>Privacy</h1><p>The game has no player accounts or gameplay analytics. Match settings, key bindings, audio preferences, and aggregate game statistics are saved in your browser’s local storage. We do not send these gameplay records to a server.</p><p>Clearing this site’s browser data removes those settings and statistics. Local storage may be unavailable in some private browsing modes; the game still works.</p><p>This site is hosted on GitHub Pages. GitHub may process request information such as IP addresses to deliver and secure the site. See <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener noreferrer">GitHub’s privacy statement</a>.</p><h2>Advertising</h2><p>The public site loads Google AdSense code. Loading this code contacts Google even when no ad is displayed. Google and its advertising partners may process IP addresses, device and browser information, and use cookies or similar identifiers to deliver, measure and, where permitted by your choices, personalize advertising.</p><p>See <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener noreferrer">how Google uses information from sites that use its services</a> and <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener noreferrer">Google’s advertising policies and choices</a>. Where a consent message is shown, use its options to accept, decline or manage advertising consent. You can also manage cookies in your browser.</p><p>Reserved advertisement spaces are not connected to individual ad units yet. Ad availability depends on Google’s approval, account settings and applicable consent requirements. Local previews do not load AdSense.</p><h2>Contact</h2><p>Privacy questions: <a href="mailto:tushar.kumar6414@gmail.com">tushar.kumar6414@gmail.com</a>.</p>`,
     credits: `<h1>Credits</h1><p>Game design, original character geometry, interface, map layouts, and synthesized sound were created for TagSpark Arena.</p><h2>Textures</h2><p>Subtle pattern textures by <a href="https://kenney.nl/assets/pattern-pack" target="_blank" rel="noopener">Kenney — Pattern Pack</a>, released under CC0. Copies are served from this site, never hotlinked.</p><h2>Built with</h2><p>Phaser 3 (MIT), TypeScript, and Vite. The game uses your device’s system fonts and no remote font service.</p>`,
     contact: `<h1>Contact</h1><p>For support, privacy questions or business enquiries, email <a href="mailto:tushar.kumar6414@gmail.com">tushar.kumar6414@gmail.com</a>.</p><p>For game feedback or bug reports, <a href="https://github.com/tagsparkarena/tagsparkarena.github.io/issues" target="_blank" rel="noopener noreferrer">open an issue on GitHub</a> (a GitHub account is required). Issues are public: do not post personal information.</p><p>For a helpful bug report, include the match seed shown below the arena, map name, player count, browser, and what happened. A keyboard model is useful when reporting missed keys.</p>`,
   };
@@ -412,7 +469,12 @@ function act(action: string) {
     navigate(type);
     return;
   }
-  if (type === "join") {
+  if (type === "mode" && (arg === "local" || arg === "solo")) {
+    settings.mode = arg;
+    saveSettings(settings);
+    lobby();
+  } else if (type === "join") {
+    if (settings.mode === "solo") return;
     const id = Number(arg);
     if (joined.has(id)) joined.delete(id);
     else joined.add(id);
@@ -525,7 +587,7 @@ window.addEventListener("keydown", (e) => {
     return;
   }
   if (modal?.open) return;
-  if (route === "lobby") {
+  if (route === "lobby" && settings.mode !== "solo") {
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     if (settings.controls.some((c) => Object.values(c).includes(e.code)))
       e.preventDefault();

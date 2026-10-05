@@ -15,6 +15,7 @@ export const AD_PLACEMENTS = {
   lobby: "banner",
 } as const;
 export function adPlaceholder(id: keyof typeof AD_PLACEMENTS) {
+  if (import.meta.env.MODE === "crazygames") return "";
   const format = AD_PLACEMENTS[id];
   return `<aside class="ad-space ad-${format} ad-${id}" data-ad-placement="${id}" aria-label="Advertisement space"><span>ADVERTISEMENT</span><small>Reserved ad space</small></aside>`;
 }

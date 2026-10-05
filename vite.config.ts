@@ -1,8 +1,9 @@
 import { defineConfig, loadEnv } from "vite";
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
-  const base = env.VITE_BASE_PATH || "/";
-  const origin = env.VITE_SITE_URL?.replace(/\/$/, "");
+  const crazyGames = mode === "crazygames";
+  const base = crazyGames ? "./" : env.VITE_BASE_PATH || "/";
+  const origin = crazyGames ? undefined : env.VITE_SITE_URL?.replace(/\/$/, "");
   if (origin) {
     const parsed = new URL(origin);
     if (
@@ -16,11 +17,23 @@ export default defineConfig(({ mode }) => {
   return {
     base,
     server: { watch: { usePolling: true, interval: 500 } },
-    build: { chunkSizeWarningLimit: 1600 },
+    build: {
+      chunkSizeWarningLimit: 1600,
+      outDir: crazyGames ? "dist-crazygames" : "dist",
+    },
     plugins: [
       {
         name: "public-metadata",
         transformIndexHtml(html) {
+          if (crazyGames) {
+            html = html
+              .replace(
+                /<script id="tagspark-adsense-loader">[\s\S]*?<\/script>/,
+                "",
+              )
+              .replace(/<meta name="google-adsense-account"[^>]*\/>/, "")
+              .replace(/<link rel="manifest"[^>]*\/>/, "");
+          }
           return origin
             ? html.replace(
                 "</head>",
