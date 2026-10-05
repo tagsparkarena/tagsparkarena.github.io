@@ -51,7 +51,7 @@ pnpm exec playwright install chromium
 pnpm test:e2e
 ```
 
-Unit tests cover score rules, exact buzzer timing, tag locks, power-up duration, shield cooldown, double jumps, coyote-friendly movement, simultaneous input, moving platforms, portals, seeded fairness and a 48-combination map/modifier stress simulation. Browser tests cover the complete match journey, all pickups, pause, rematch, 3/4 players, resizing and accessibility.
+Unit tests cover score rules, exact buzzer timing, tag locks, power-up duration, shield refreshes, double jumps, coyote-friendly movement, simultaneous input, moving platforms, portals, seeded fairness and a 48-combination map/modifier stress simulation. Browser tests cover the complete match journey, all pickups, pause, rematch, 3/4 players, resizing and accessibility.
 
 The dev-only `?test` URL exposes repeatable test hooks and a `development_test_action` WebMCP tool. These hooks are removed from production by Vite. `read_game_status` is an optional read-only progressive enhancement for browsers supporting WebMCP. Ordinary browsers do not need it.
 
@@ -75,9 +75,9 @@ See `QA_REPORT.md` for which checks actually ran in the delivery environment; in
 
 ## Balance and tuning
 
-Edit `TUNING` in `src/config.ts`. Base speed 600 units/s; speed power-up ×1.35 (810 units/s) for 4 seconds; shield 3 seconds with another 7-second cooldown; Super Jump ×1.3 jump impulse for 6 seconds. Ground acceleration and braking are 11000 units/s², air acceleration is 8500, and reversals gain a 1.5× acceleration multiplier. Jump impulse is 1060 with gravity 2800, so a brief tap clears the enlarged platform spacing. Catch-up starts after 9 seconds without a tag, ramps over 12 seconds, and caps at 12%. Catch-up and Speed Burst multiply, for a bounded maximum ×1.512 before any global round modifier.
+Edit `TUNING` in `src/config.ts`. Base speed 600 units/s; speed power-up ×1.35 (810 units/s) for 4 seconds; shield 3 seconds, refreshed by each new shield pickup; Super Jump ×1.3 jump impulse for 6 seconds. Ground acceleration and braking are 11000 units/s², air acceleration is 8500, and reversals gain a 1.5× acceleration multiplier. Jump impulse is 1060 with gravity 2800, so a brief tap clears the enlarged platform spacing. Catch-up starts after 9 seconds without a tag, ramps over 12 seconds, and caps at 12%. Catch-up and Speed Burst multiply, for a bounded maximum ×1.512 before any global round modifier.
 
-Pickups telegraph for 1.1 seconds, expire after 13 active seconds, appear every 7 seconds (3.5 for Power-Up Rain), and cap at three. Shields are runners-only. Buffs reset every round. The single active modifier applies equally to everyone. With no modifiers selected, Classic is used.
+Pickups telegraph for 1.1 seconds, expire after 13 active seconds, appear every 7 seconds (3.5 for Power-Up Rain), and cap at three. Shields are runners-only; It cannot collect or consume them. Each runner pickup refreshes protection to three seconds with no cooldown. Buffs reset every round. The single active modifier applies equally to everyone. With no modifiers selected, Classic is used.
 
 Maps use a 1400 × 784 coordinate system: 40% wider and taller than before, with unchanged player collision size. Blue dashed platforms are one-way: jump up through them or hold the action key to drop through continuously. Dark platforms block sides and undersides as well as supporting players on top. Rooftop Garden, Clockwork Crossing, Crystal Cavern and Pinwheel Plaza also have solid vertical walls. Moving Platform Mayhem moves only one-way platforms to avoid crushing players. Cloud's paired low portals have a cooldown. New profiles default to Classic.
 

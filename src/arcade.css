@@ -1,0 +1,358 @@
+/* Separate, fixed-screen presentation for the ad-free portal build. */
+html.arcade,
+.arcade body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #173544;
+}
+.arcade #app {
+  position: absolute;
+  width: 1100px;
+  height: 660px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) scale(var(--menu-scale, 1));
+  background: #f3f6f2;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.arcade header {
+  width: 100%;
+  height: 62px;
+  flex: none;
+  padding: 10px 28px;
+  margin: 0;
+  border-bottom: 1px solid #d8e1da;
+}
+.arcade main {
+  width: 100%;
+  max-width: none;
+  padding: 16px 28px;
+  margin: 0;
+  flex: 1;
+  min-height: 0;
+}
+.arcade .arcade-menu {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  height: 100%;
+  gap: 36px;
+  align-items: center;
+}
+.arcade-menu-art {
+  height: 490px;
+  background: #d8e9d9;
+  position: relative;
+  border-radius: 24px;
+  overflow: hidden;
+  border: 2px solid #b5cec0;
+}
+.arcade-menu-art > svg {
+  position: absolute;
+  bottom: 0;
+  height: 65%;
+  width: 100%;
+  opacity: 0.65;
+}
+.arcade-title {
+  position: relative;
+  text-align: center;
+  padding: 38px 20px;
+}
+.arcade-title .brand-icon {
+  display: inline-block;
+  width: 62px;
+  height: 62px;
+  font-size: 52px;
+  line-height: 62px;
+  transform: rotate(-7deg);
+}
+.arcade-title h1 {
+  font-size: 56px;
+  line-height: 1;
+  letter-spacing: -3px;
+  margin: 22px 0;
+}
+.arcade-title h1 span {
+  display: block;
+  font-size: 22px;
+  letter-spacing: 12px;
+  margin: 12px 0 0 12px;
+}
+.arcade-cast {
+  display: flex;
+  justify-content: center;
+  gap: 22px;
+  position: absolute;
+  bottom: 56px;
+  width: 100%;
+}
+.arcade-cast .avatar {
+  margin: 0;
+}
+.arcade-cast .avatar:nth-child(even) {
+  transform: translateY(-24px);
+}
+.arcade-menu-panel h2 {
+  font-size: 38px;
+  margin: 0;
+}
+.arcade-menu-panel > p {
+  font-size: 17px;
+  margin: 14px 0 28px;
+}
+.arcade .arcade-mode {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  font-size: 22px;
+  padding: 24px;
+  margin: 14px 0;
+  border-radius: 14px;
+}
+.arcade-mode span {
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+.arcade-menu-panel .arcade-requirements {
+  font-size: 13px;
+  margin: 28px 0 12px;
+}
+.arcade-menu-meta {
+  font-size: 12px;
+  color: #52685e;
+}
+.arcade .lobby-heading {
+  margin: 0 0 12px;
+}
+.arcade .lobby-heading h1 {
+  font-size: 30px;
+  margin: 0 0 4px;
+}
+.arcade .lobby-heading p {
+  font-size: 13px;
+}
+.arcade .device-notice {
+  display: none;
+}
+.arcade .mode-selector {
+  margin: 0 0 12px;
+  gap: 10px;
+}
+.arcade .mode-selector button {
+  padding: 10px 18px;
+}
+.arcade .ai-settings {
+  margin: 0 0 12px;
+  padding: 8px 14px;
+  gap: 12px;
+}
+.arcade .ai-settings select {
+  padding: 7px 12px;
+}
+.arcade .ai-settings p {
+  font-size: 12px;
+}
+.arcade .player-grid {
+  gap: 14px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.arcade .player-grid.solo-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.arcade .player-card,
+.arcade .player-card.joined {
+  padding: 12px;
+  border-width: 2px;
+}
+.arcade .player-card .avatar {
+  width: 60px;
+  height: 60px;
+  margin: 14px auto 10px;
+  border-radius: 20px;
+}
+.arcade .player-card h2 {
+  font-size: 23px;
+  margin: 8px 0;
+}
+.arcade .player-card p {
+  margin: 8px auto;
+}
+.arcade .player-card .text-button {
+  padding: 8px 5px 2px;
+}
+.arcade .join-button,
+.arcade .joined-button {
+  padding: 9px;
+}
+.arcade .lobby-bottom {
+  margin-top: 14px;
+}
+.arcade .match-summary {
+  width: 100%;
+}
+.arcade .match-summary > span {
+  margin-right: auto;
+}
+.arcade .match-summary .primary {
+  padding: 14px 20px;
+}
+.arcade .lobby-hint {
+  margin: 10px 0 0;
+}
+.arcade dialog {
+  max-height: min(610px, 90dvh);
+  max-width: min(920px, 95vw);
+  padding: 24px;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.arcade dialog h2 {
+  margin-top: 0;
+}
+.arcade .dialog-actions {
+  position: sticky;
+  bottom: -24px;
+  background: #f3f6f2;
+  padding: 12px 0;
+  z-index: 1;
+}
+.arcade .reading {
+  max-height: 550px;
+  overflow: auto;
+  margin: 0 auto;
+}
+.arcade .results-heading {
+  padding: 0;
+}
+.arcade .result-spark {
+  width: 48px;
+  height: 48px;
+  font-size: 38px;
+  line-height: 48px;
+  margin: 8px auto;
+}
+.arcade .results-heading h1 {
+  font-size: 34px;
+  margin: 8px 0;
+}
+.arcade .results-heading p {
+  margin: 10px auto;
+}
+.arcade .score-head,
+.arcade .score-row {
+  padding: 10px 20px;
+}
+.arcade .score-note {
+  margin: 12px auto;
+}
+.arcade .results-actions .primary {
+  margin: 0;
+  padding: 14px 24px;
+}
+.arcade .seed-line {
+  margin: 12px auto;
+}
+/* Gameplay uses the actual iframe dimensions, rather than scaling a menu. */
+.arcade #app[data-screen="game"] {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: none;
+}
+.arcade #app[data-screen="game"] > header {
+  display: none;
+}
+.arcade #app[data-screen="game"] > main {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 10px;
+  height: 100%;
+}
+.arcade main:has(.game-shell) .game-heading {
+  margin: 0;
+  min-height: 48px;
+  flex: none;
+}
+.arcade .game-heading h2 {
+  font-size: 18px;
+  margin: 2px 0;
+}
+.arcade .game-heading .eyebrow {
+  font-size: 10px;
+}
+.arcade .game-tools {
+  gap: 8px;
+}
+.arcade .game-tools .secondary {
+  padding: 8px 14px;
+}
+.arcade .modifier-badge {
+  padding: 6px 10px;
+  font-size: 11px;
+}
+.arcade .game-ad-layout {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  width: 100%;
+}
+.arcade .game-shell {
+  width: min(100%, calc((100dvh - 132px) * 1.785714));
+  max-width: none;
+  border-radius: 12px;
+  box-shadow: none;
+}
+.arcade .game-hud {
+  padding: 5px 12px;
+  min-height: 36px;
+  height: 36px;
+  gap: 8px;
+}
+.arcade .player-hud {
+  max-width: none;
+  gap: 8px;
+}
+.arcade .hud-player {
+  gap: 6px;
+}
+.arcade .hud-player small {
+  display: none;
+}
+.arcade .hud-player b {
+  font-size: 12px;
+}
+.arcade .hud-dot {
+  width: 24px;
+  height: 24px;
+}
+.arcade .timer {
+  font-size: 24px;
+  min-width: 54px;
+}
+.arcade .game-bottom {
+  height: 26px;
+  padding: 3px 10px;
+  font-size: 10px;
+}
+.arcade .game-bottom kbd {
+  height: 18px;
+}
+.arcade .under-game {
+  display: none;
+}
+.arcade #app[data-screen="game"] dialog {
+  max-width: min(920px, 95vw);
+  max-height: 90dvh;
+}
+.arcade .game-shell:fullscreen {
+  width: 100%;
+}
+.arcade .game-shell:fullscreen .game-viewport {
+  max-width: calc((100dvh - 62px) * 1.785714);
+  max-height: calc(100dvh - 62px);
+}

@@ -52,7 +52,6 @@ export interface Player {
   dropUntil: number;
   portalUntil: number;
   safeUntil: number;
-  shieldReady: number;
   buffs: Record<PowerKind, number>;
   itTime: number;
   tags: number;
@@ -150,7 +149,6 @@ export class World {
       dropUntil: 0,
       portalUntil: 0,
       safeUntil: T.spawnProtection,
-      shieldReady: 0,
       buffs: { speed: 0, shield: 0, super: 0 },
       itTime: 0,
       tags: 0,
@@ -206,8 +204,10 @@ export class World {
       for (const item of [...this.pickups])
         if (
           item.ready <= this.time &&
-          Math.abs(p.x - item.x) < 32 &&
-          Math.abs(p.y - 22 - item.y) < 40
+          item.expires > this.time &&
+          // Match the visible pickup ring, with room for its three-pixel bob.
+          Math.abs(p.x - item.x) <= T.playerWidth / 2 + 24 &&
+          Math.abs(p.y - T.playerHeight / 2 - item.y) <= T.playerHeight / 2 + 27
         ) {
           if (this.collect(p, item)) {
             this.pickups = this.pickups.filter((i) => i.id !== item.id);
@@ -426,10 +426,8 @@ export class World {
     return true;
   }
   collect(p: Player, item: Pickup) {
-    if (
-      item.kind === "shield" &&
-      (p.id === this.it || p.shieldReady > this.time)
-    )
+    if (item.kind === "shield" && p.id === this.it) return false;
+    if (this.ended || item.ready > this.time || item.expires <= this.time)
       return false;
     p.buffs[item.kind] =
       this.time +
@@ -438,8 +436,6 @@ export class World {
         : item.kind === "shield"
           ? T.shieldDuration
           : T.superDuration);
-    if (item.kind === "shield")
-      p.shieldReady = this.time + T.shieldDuration + T.shieldCooldown;
     p.pickups[item.kind]++;
     this.events.push({
       type: "pickup",

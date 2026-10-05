@@ -1,4 +1,5 @@
 import "./style.css";
+import "./arcade.css";
 import {
   WORLD,
   PALETTES,
@@ -26,6 +27,17 @@ import { adPlaceholder, gameAdRails } from "./ads";
 import type { Session } from "./game";
 import type Phaser from "phaser";
 const root = document.querySelector<HTMLDivElement>("#app")!;
+const arcade = import.meta.env.MODE === "crazygames";
+if (arcade) {
+  document.documentElement.classList.add("arcade");
+  const fitMenu = () =>
+    root.style.setProperty(
+      "--menu-scale",
+      String(Math.min(innerWidth / 1100, innerHeight / 660)),
+    );
+  addEventListener("resize", fitMenu);
+  fitMenu();
+}
 const settings = loadSettings(),
   keyboard = new Keyboard(settings.controls),
   audio = new AudioPlayer(settings);
@@ -64,7 +76,12 @@ const playerName = (id: number) =>
   matchSettings?.mode === "solo" && id === 1 ? "AI" : PALETTES[id].name;
 const brand = `<a class="brand" href="#home" aria-label="TagSpark Arena home"><span class="brand-icon">ϟ</span> TAGSPARK<span class="brand-small">ARENA</span></a>`;
 function shell(content: string) {
-  root.innerHTML = `<header>${brand}<nav>${btn("How to play", "how")}${btn("⚙ Settings", "settings")}<span class="local-badge">SOLO & LOCAL MULTIPLAYER</span></nav></header><main>${content}</main><footer><span class="footer-brand">ϟ TAGSPARK ARENA <small>Solo and local multiplayer tag</small></span><div><a href="#about">About</a><a href="#privacy">Privacy</a><a href="#credits">Credits</a><a href="#contact">Contact</a></div></footer><dialog id="modal"></dialog><div class="sr-only" id="announce" role="status" aria-live="polite"></div>`;
+  root.dataset.screen = route;
+  if (arcade) {
+    root.innerHTML = `<header>${brand}<nav>${btn("How to play", "arcade-help")}${btn("Settings", "settings")}${btn("Credits", "arcade-credits")}</nav></header><main>${content}</main><dialog id="modal"></dialog><div class="sr-only" id="announce" role="status" aria-live="polite"></div>`;
+  } else {
+    root.innerHTML = `<header>${brand}<nav>${btn("How to play", "how")}${btn("⚙ Settings", "settings")}<span class="local-badge">SOLO & LOCAL MULTIPLAYER</span></nav></header><main>${content}</main><footer><span class="footer-brand">ϟ TAGSPARK ARENA <small>Solo and local multiplayer tag</small></span><div><a href="#about">About</a><a href="#privacy">Privacy</a><a href="#credits">Credits</a><a href="#contact">Contact</a></div></footer><dialog id="modal"></dialog><div class="sr-only" id="announce" role="status" aria-live="polite"></div>`;
+  }
   bind();
   root.querySelector(".brand")?.addEventListener("click", (e) => {
     e.preventDefault();
@@ -97,6 +114,12 @@ function home() {
   stop();
   route = "home";
   document.title = "TagSpark Arena — solo and local multiplayer tag";
+  if (arcade) {
+    shell(
+      `<section class="arcade-menu"><div class="arcade-menu-art">${miniature("courtyard")}<div class="arcade-title"><span class="brand-icon">ϟ</span><h1>TAGSPARK<span>ARENA</span></h1></div><div class="arcade-cast">${PALETTES.map((p) => `<div class="avatar" style="--player:${p.color}"><span>• •</span><small>${p.symbol}</small></div>`).join("")}</div></div><div class="arcade-menu-panel"><h2>Play tag</h2><p>Pass the spark. Don’t be It when time runs out.</p>${btn("Solo vs AI <span>1 PLAYER</span>", "mode:solo", "arcade-mode primary")}${btn("Local multiplayer <span>2–4 PLAYERS</span>", "mode:local", "arcade-mode secondary")}<p class="arcade-requirements">Keyboard required · No phone or touch controls</p><div class="arcade-menu-meta">8 maps · 3 power-ups · Custom match settings</div></div></section>`,
+    );
+    return;
+  }
   shell(
     `<section class="intro"><div><h1>TagSpark Arena</h1><p>Play solo against an AI opponent or with 2–4 players on one keyboard. Use power-ups to escape and avoid being <b>It</b> when time runs out.</p>${btn("Play <span>→</span>", "lobby", "primary")}<div class="small-note">Free browser game · Solo or local multiplayer</div><p class="mobile-note">A desktop or laptop with a physical keyboard is required. Phones and touch controls are not supported.</p></div><div class="preview"><div class="arena-label">SUNLIT COURTYARD <span>01 / ${String(MAPS.length).padStart(2, "0")}</span></div><div id="demo" class="demo-canvas"></div><div class="preview-caption"><span class="live-dot"></span> Gameplay preview</div></div></section><div class="feature-strip"><span>↔ <b>Shared-screen multiplayer</b></span><span>ϟ <b>3 power-ups</b></span><span>◇ <b>${MAPS.length} maps</b></span></div><section class="below"><div class="section-heading"><div><h2>Select your map</h2></div><span class="section-meta">${String(MAPS.length).padStart(2, "0")} ARENAS / 06 MODIFIERS</span></div><div class="map-grid">${MAPS.map((m, i) => `<button class="map-card" data-action="map:${m.id}"><div class="map-image">${miniature(m.id)}<span class="map-number">0${i + 1}</span></div><div class="map-copy"><h3>${m.name}</h3><span>${m.tagline}</span></div></button>`).join("")}</div></section>${adPlaceholder("home-inline")}<section class="power-section"><div><h2>Power-ups</h2><p>Collect temporary speed, shield and higher-jump abilities during a round.</p></div><div class="power-cards">${Object.values(
       POWER_INFO,
@@ -433,7 +456,7 @@ function page(name: string) {
       .map((p) => `<p><b>${p.icon} ${p.name}:</b> ${p.description}</p>`)
       .join(
         "",
-      )}<p>Shields cannot be picked up by It, and there’s a cooldown before the same runner can get another. Power-ups reset each round.</p><h2>Default controls</h2><div class="help-controls">${PALETTES.map((p, id) => `<p><b>P${id + 1} ${p.name}</b><span>${keys(id)}</span></p>`).join("")}</div><p>Keys are shown in order: left, right, jump, drop. Tap jump for a short hop; hold it for height. Esc pauses. R restarts only while paused.</p>${btn("Gather your players <span>→</span>", "lobby", "primary")}`,
+      )}<p>Only runners can collect shields; It passes through them. Each runner pickup refreshes protection to three seconds, with no cooldown or stacked extra time. Power-ups reset each round.</p><h2>Default controls</h2><div class="help-controls">${PALETTES.map((p, id) => `<p><b>P${id + 1} ${p.name}</b><span>${keys(id)}</span></p>`).join("")}</div><p>Keys are shown in order: left, right, jump, drop. Tap jump for a short hop; hold it for height. Esc pauses. R restarts only while paused.</p>${btn("Gather your players <span>→</span>", "lobby", "primary")}`,
     about: `<h1>About TagSpark Arena</h1><p>TagSpark Arena is a free browser playground built around a simple rule: don’t be It at the buzzer. ${MAPS.length} arenas, three temporary power-ups, and six optional modifiers make each chase feel a little different.</p><p>There are no accounts, downloads, online matchmaking, or purchases. Play against the AI when you’re on your own, or with friends beside you. Your scores stay on your device, and a rematch is always one click away.</p><h2>Accessibility</h2><p>Players have their own color, number, and symbol. Controls can be remapped, audio can be muted, and the game respects your device’s reduced-motion setting.</p>${btn("Play <span>→</span>", "lobby", "primary")}`,
     privacy:
       import.meta.env.MODE === "crazygames"
@@ -465,6 +488,18 @@ function bind(scope: ParentNode = root) {
 }
 function act(action: string) {
   const [type, arg, extra] = action.split(":");
+  if (type === "arcade-help") {
+    dialog(
+      `<h2>How to play</h2><p>Touch another player to pass the spark. Whoever is It at the buzzer loses the round. Most round wins wins the match.</p><div class="help-controls">${PALETTES.map((p, id) => `<p><b>P${id + 1} ${p.name}</b><span>${keys(id)}</span></p>`).join("")}</div><p>Keys: left, right, jump, drop. Press jump again in the air for a double jump when enabled. Hold Down to pass through blue dashed platforms; dark platforms and walls are solid.</p><p><b>Speed Burst:</b> run faster. <b>Shield:</b> temporary protection. <b>Super Jump:</b> jump higher.</p><p>Esc pauses · R restarts while paused. Customize match to choose maps, power-ups and modifiers.</p>${btn("Done", "close", "primary")}`,
+    );
+    return;
+  }
+  if (type === "arcade-credits") {
+    dialog(
+      `<h2>Credits</h2><p>TagSpark Arena uses Phaser 3 (MIT), original drawn characters and synthesized audio, and CC0 textures from Kenney’s Pattern Pack.</p><p>Game settings and scores are saved on this device only. No accounts, gameplay analytics or in-game advertising are included in this build.</p>${btn("Done", "close", "primary")}`,
+    );
+    return;
+  }
   if (["home", "lobby", "how"].includes(type)) {
     navigate(type);
     return;

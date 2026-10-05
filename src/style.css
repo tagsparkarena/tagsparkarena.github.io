@@ -611,6 +611,8 @@ footer a:hover {
   color: var(--player-dark);
 }
 .avatar {
+  position: relative;
+  flex-shrink: 0;
   margin: 35px auto 15px;
   width: 78px;
   height: 78px;
@@ -626,14 +628,39 @@ footer a:hover {
   justify-content: center;
 }
 .avatar > span {
-  font-size: 26px;
-  font-weight: 900;
-  letter-spacing: 7px;
-  margin-left: 7px;
-  line-height: 32px;
+  position: absolute;
+  top: 30%;
+  left: 24%;
+  width: 52%;
+  height: 14%;
+  font-size: 0;
+  line-height: 0;
+  margin: 0;
+}
+.avatar > span::before,
+.avatar > span::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 23%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--ink);
+}
+.avatar > span::before {
+  left: 0;
+}
+.avatar > span::after {
+  right: 0;
 }
 .avatar > small {
-  font-size: 13px;
+  position: absolute;
+  top: 58%;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  line-height: 1;
+  font-size: 12px;
 }
 .player-card h2 {
   font-size: 27px;
