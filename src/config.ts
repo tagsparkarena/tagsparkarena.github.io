@@ -23,7 +23,6 @@ export const TUNING = {
   speedDuration: 4,
   speedMultiplier: 1.35,
   shieldDuration: 3,
-  shieldCooldown: 7,
   superDuration: 6,
   superJumpMultiplier: 1.3,
   playerWidth: 32,
@@ -91,7 +90,7 @@ export const POWER_INFO: Record<
     name: "Invincibility Shield",
     icon: "◇",
     color: 0x70dbd9,
-    description: "3 seconds of tag protection for runners.",
+    description: "Runners only: 3 seconds of protection. Collect another to refresh it.",
   },
   super: {
     name: "Super Jump",
